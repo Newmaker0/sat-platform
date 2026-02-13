@@ -64,6 +64,14 @@ while IFS= read -r file; do
   fi
 done < "$TMP_LIST"
 
+# Run frontend lint/format only when frontend files are staged.
+if grep -Eq '^frontend/' "$TMP_LIST"; then
+  if ! (cd frontend && npm run -s precommit); then
+    echo "pre-commit: frontend lint-staged checks failed." >&2
+    has_error=1
+  fi
+fi
+
 if [ "$has_error" -ne 0 ]; then
   echo "Commit blocked by pre-commit hook." >&2
   echo "Fix the issues above or use --no-verify if you really need to bypass." >&2

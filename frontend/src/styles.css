@@ -1,8 +1,8 @@
-@import "./styles/fonts.css";
+@import './styles/fonts.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "./styles/tokens.css";
-@import "./styles/material-overrides.css";
+@import './styles/tokens.css';
+@import './styles/material-overrides.css';

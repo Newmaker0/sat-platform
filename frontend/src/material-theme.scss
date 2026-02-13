@@ -1,4 +1,4 @@
-@use "@angular/material" as mat;
+@use '@angular/material' as mat;
 
 @include mat.core();
 
@@ -6,16 +6,19 @@ $sat-primary: mat.define-palette(mat.$blue-palette, 700, 500, 900);
 $sat-accent: mat.define-palette(mat.$cyan-palette, 600, 400, 800);
 $sat-warn: mat.define-palette(mat.$red-palette, 600);
 
-$sat-theme: mat.define-light-theme((
-  color: (
-    primary: $sat-primary,
-    accent: $sat-accent,
-    warn: $sat-warn
-  ),
-  typography: mat.define-typography-config(
-    $font-family: '"Geist", "Inter", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-  ),
-  density: -2
-));
+$sat-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $sat-primary,
+      accent: $sat-accent,
+      warn: $sat-warn
+    ),
+    typography: mat.define-typography-config(
+        $font-family:
+          '"Geist", "Inter", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+      ),
+    density: -2
+  )
+);
 
 @include mat.all-component-themes($sat-theme);

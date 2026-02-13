@@ -1,5 +1,7 @@
 <section class="min-h-screen bg-white md:grid md:grid-cols-2">
-  <aside class="relative hidden bg-slate-950 p-10 text-slate-200 md:flex md:flex-col md:justify-between">
+  <aside
+    class="relative hidden bg-slate-950 p-10 text-slate-200 md:flex md:flex-col md:justify-between"
+  >
     <p class="sat-type-eyebrow text-slate-400">SAT Platform</p>
   </aside>
 
@@ -7,7 +9,9 @@
     <div class="mx-auto w-full max-w-sm">
       <p class="sat-type-eyebrow mb-2 md:hidden">SAT Platform</p>
       <h1 class="sat-type-page-title">Entrar</h1>
-      <p class="sat-type-page-subtitle mt-2">Acesse sua conta para abrir o painel administrativo.</p>
+      <p class="sat-type-page-subtitle mt-2">
+        Acesse sua conta para abrir o painel administrativo.
+      </p>
 
       <form class="mt-6 space-y-4" (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
         <div class="space-y-1.5">

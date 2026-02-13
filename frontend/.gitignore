@@ -8,6 +8,7 @@
 /coverage/
 /.sass-cache/
 /typings/
+/.eslintcache
 
 # Tooling logs
 npm-debug.log*

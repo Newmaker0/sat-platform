@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 
 interface ReportRow {
+  readonly id: string;
   readonly nome: string;
   readonly categoria: string;
   readonly atualizadoEm: string;
@@ -11,19 +12,61 @@ interface ReportRow {
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.component.html',
-  styleUrls: ['./reports.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReportsComponent {
   readonly displayedColumns: string[] = ['nome', 'categoria', 'atualizadoEm', 'status'];
   readonly pageSizeOptions: readonly number[] = [5, 10, 20];
   readonly reports: readonly ReportRow[] = [
-    { nome: 'Inventário mensal', categoria: 'Estoque', atualizadoEm: 'Hoje, 09:15', status: 'Pronto' },
-    { nome: 'Ruptura de peças', categoria: 'Estoque', atualizadoEm: 'Hoje, 06:50', status: 'Processando' },
-    { nome: 'Produtividade dos técnicos', categoria: 'Operações', atualizadoEm: 'Ontem, 18:40', status: 'Pronto' },
-    { nome: 'Previsão de consumo', categoria: 'Planejamento', atualizadoEm: 'Há 3 dias', status: 'Pronto' },
-    { nome: 'Pendências por regional', categoria: 'Operações', atualizadoEm: 'Hoje, 08:00', status: 'Agendado' },
-    { nome: 'Tempo médio de atendimento', categoria: 'Performance', atualizadoEm: 'Hoje, 07:30', status: 'Pronto' },
-    { nome: 'Conciliação de sincronizações', categoria: 'Offline', atualizadoEm: 'Ontem, 23:10', status: 'Agendado' }
+    {
+      id: 'inventario-mensal',
+      nome: 'Inventário mensal',
+      categoria: 'Estoque',
+      atualizadoEm: 'Hoje, 09:15',
+      status: 'Pronto'
+    },
+    {
+      id: 'ruptura-de-pecas',
+      nome: 'Ruptura de peças',
+      categoria: 'Estoque',
+      atualizadoEm: 'Hoje, 06:50',
+      status: 'Processando'
+    },
+    {
+      id: 'produtividade-dos-tecnicos',
+      nome: 'Produtividade dos técnicos',
+      categoria: 'Operações',
+      atualizadoEm: 'Ontem, 18:40',
+      status: 'Pronto'
+    },
+    {
+      id: 'previsao-de-consumo',
+      nome: 'Previsão de consumo',
+      categoria: 'Planejamento',
+      atualizadoEm: 'Há 3 dias',
+      status: 'Pronto'
+    },
+    {
+      id: 'pendencias-por-regional',
+      nome: 'Pendências por regional',
+      categoria: 'Operações',
+      atualizadoEm: 'Hoje, 08:00',
+      status: 'Agendado'
+    },
+    {
+      id: 'tempo-medio-de-atendimento',
+      nome: 'Tempo médio de atendimento',
+      categoria: 'Performance',
+      atualizadoEm: 'Hoje, 07:30',
+      status: 'Pronto'
+    },
+    {
+      id: 'conciliacao-de-sincronizacoes',
+      nome: 'Conciliação de sincronizações',
+      categoria: 'Offline',
+      atualizadoEm: 'Ontem, 23:10',
+      status: 'Agendado'
+    }
   ];
 
   pageSize = this.pageSizeOptions[0];
@@ -41,6 +84,10 @@ export class ReportsComponent {
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;
+  }
+
+  trackByReportId(_: number, row: ReportRow): string {
+    return row.id;
   }
 
   getStatusClasses(status: ReportRow['status']): string {

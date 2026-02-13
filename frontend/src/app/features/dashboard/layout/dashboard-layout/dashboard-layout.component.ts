@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
@@ -11,7 +11,7 @@ interface DashboardLink {
 @Component({
   selector: 'app-dashboard-layout',
   templateUrl: './dashboard-layout.component.html',
-  styleUrls: ['./dashboard-layout.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardLayoutComponent {
   @ViewChild(MatMenuTrigger) userMenuTrigger?: MatMenuTrigger;
@@ -38,6 +38,10 @@ export class DashboardLayoutComponent {
 
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  trackByPath(_: number, link: DashboardLink): string {
+    return link.path;
   }
 
   onUserMenuOpened(): void {

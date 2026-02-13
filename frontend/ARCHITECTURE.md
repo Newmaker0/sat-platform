@@ -61,6 +61,8 @@ src/
 - Componente de página: orquestra UI e interação.
 - Evitar lógica de domínio grande no componente.
 - Quando crescer, extrair para `facade`/`service` dentro da feature.
+- Preferir `ChangeDetectionStrategy.OnPush` para componentes de UI.
+- Em listas com `*ngFor`, usar `trackBy` para evitar re-render desnecessário.
 
 ## Estilos
 
@@ -82,3 +84,5 @@ src/
 - Nova feature => criar novo módulo em `features/<nome>`.
 - Ajuste global de UI => tokens/overrides globais, não CSS espalhado.
 - Sempre validar com `npm run build` após refactors estruturais.
+- Executar `npm run lint` antes de commit.
+- Deixar `pre-commit` cuidar de formatação/lint dos arquivos staged.

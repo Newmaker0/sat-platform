@@ -1,21 +1,31 @@
-<section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-  <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-    <p class="sat-type-card-label">Ordens de serviço abertas</p>
-    <h2 class="sat-type-metric mt-2">14</h2>
-    <p class="sat-type-caption mt-3 text-emerald-600">+8% em relação a ontem</p>
-  </article>
+<app-page-header
+  title="Visão geral"
+  subtitle="Acompanhe os principais indicadores da operação em tempo real."
+></app-page-header>
 
-  <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-    <p class="sat-type-card-label">Sincronizações pendentes</p>
-    <h2 class="sat-type-metric mt-2">5</h2>
-    <p class="sat-type-caption mt-3 text-amber-600">2 aguardando nova tentativa de rede</p>
-  </article>
+<section class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+  <app-metric-card
+    label="Ordens de serviço abertas"
+    value="14"
+    caption="+8% em relação a ontem"
+    captionClass="text-emerald-600"
+  ></app-metric-card>
 
-  <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:col-span-2 xl:col-span-1">
-    <p class="sat-type-card-label">Alertas de estoque baixo</p>
-    <h2 class="sat-type-metric mt-2">2</h2>
-    <p class="sat-type-caption mt-3 text-rose-600">Almoxarifado central e Van 03</p>
-  </article>
+  <app-metric-card
+    label="Sincronizações pendentes"
+    value="5"
+    caption="2 aguardando nova tentativa de rede"
+    captionClass="text-amber-600"
+  ></app-metric-card>
+
+  <div class="md:col-span-2 xl:col-span-1">
+    <app-metric-card
+      label="Alertas de estoque baixo"
+      value="2"
+      caption="Almoxarifado central e Van 03"
+      captionClass="text-rose-600"
+    ></app-metric-card>
+  </div>
 </section>
 
 <section class="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
