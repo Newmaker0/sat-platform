@@ -1,0 +1,26 @@
+<div class="dashboard-shell">
+  <aside class="sidebar">
+    <div>
+      <h2>SAT Platform</h2>
+      <p class="sidebar-subtitle">Dashboard starter</p>
+
+      <nav>
+        <a routerLink="overview" routerLinkActive="active">Overview</a>
+        <a routerLink="reports" routerLinkActive="active">Reports</a>
+        <a routerLink="settings" routerLinkActive="active">Settings</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer" *ngIf="user$ | async as user">
+      <div class="user">
+        <strong>{{ user.name }}</strong>
+        <span>{{ user.email }}</span>
+      </div>
+      <button type="button" (click)="logout()">Log out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

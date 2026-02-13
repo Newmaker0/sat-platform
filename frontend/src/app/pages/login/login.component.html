@@ -1,0 +1,19 @@
+<section class="login-page">
+  <div class="login-card">
+    <p class="eyebrow">Spartan-style starter</p>
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to continue to your dashboard.</p>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
+      <label for="name">Name</label>
+      <input id="name" name="name" [(ngModel)]="name" required placeholder="Jane Doe" />
+
+      <label for="email">Email</label>
+      <input id="email" name="email" [(ngModel)]="email" required type="email" placeholder="jane@company.com" />
+
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</section>
