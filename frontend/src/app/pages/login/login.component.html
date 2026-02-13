@@ -1,17 +1,17 @@
 <section class="min-h-screen bg-white md:grid md:grid-cols-2">
   <aside class="relative hidden bg-slate-950 p-10 text-slate-200 md:flex md:flex-col md:justify-between">
-    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">SAT Platform</p>
+    <p class="sat-type-eyebrow text-slate-400">SAT Platform</p>
   </aside>
 
   <div class="flex min-h-screen items-center p-6 sm:p-10">
     <div class="mx-auto w-full max-w-sm">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 md:hidden">SAT Platform</p>
-      <h1 class="text-2xl font-semibold text-slate-900">Entrar</h1>
-      <p class="mt-2 text-sm text-slate-600">Acesse sua conta para abrir o painel administrativo.</p>
+      <p class="sat-type-eyebrow mb-2 md:hidden">SAT Platform</p>
+      <h1 class="sat-type-page-title">Entrar</h1>
+      <p class="sat-type-page-subtitle mt-2">Acesse sua conta para abrir o painel administrativo.</p>
 
       <form class="mt-6 space-y-4" (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
         <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-800" for="username">Usuário</label>
+          <label class="sat-type-label" for="username">Usuário</label>
           <input
             class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
             id="username"
@@ -24,7 +24,7 @@
         </div>
 
         <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-800" for="password">Senha</label>
+          <label class="sat-type-label" for="password">Senha</label>
           <input
             class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
             id="password"
