@@ -1,0 +1,52 @@
+#!/usr/bin/env sh
+set -eu
+
+PATTERN='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9][a-z0-9._/-]*\))?(!)?: .+$'
+has_error=0
+
+while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+  [ -n "${local_ref:-}" ] || continue
+
+  # Deleting remote ref.
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    commits="$(git rev-list "$local_sha" --not --remotes || true)"
+  else
+    commits="$(git rev-list "$remote_sha..$local_sha" || true)"
+  fi
+
+  [ -n "$commits" ] || continue
+
+  for commit in $commits; do
+    subject="$(git log -1 --format=%s "$commit" | tr -d '\r')"
+
+    case "$subject" in
+      Merge\ *|Revert\ *|fixup!\ *|squash!\ *)
+        continue
+        ;;
+    esac
+
+    if ! printf '%s\n' "$subject" | grep -Eq "$PATTERN"; then
+      echo "pre-push: commit message does not follow Conventional Commits:" >&2
+      echo "  $commit $subject" >&2
+      has_error=1
+    fi
+
+    case "$subject" in
+      WIP*|wip*|*"[WIP]"*|*"(WIP)"*)
+        echo "pre-push: WIP commit detected:" >&2
+        echo "  $commit $subject" >&2
+        has_error=1
+        ;;
+    esac
+  done
+done
+
+if [ "$has_error" -ne 0 ]; then
+  echo "Push blocked by pre-push hook." >&2
+  echo "Fix commit messages or push with --no-verify if you need to bypass." >&2
+  exit 1
+fi

@@ -1,0 +1,71 @@
+#!/usr/bin/env sh
+set -eu
+
+# Staged files only (added, copied, modified, renamed).
+STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+has_error=0
+
+TMP_LIST="$(mktemp)"
+trap 'rm -f "$TMP_LIST"' EXIT INT TERM
+printf '%s\n' "$STAGED_FILES" > "$TMP_LIST"
+
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+
+  case "$file" in
+    .env|.env.*)
+      case "$file" in
+        .env.example|.env.*.example) ;;
+        *)
+          echo "pre-commit: refusing to commit potential env secret file: $file" >&2
+          has_error=1
+          ;;
+      esac
+      ;;
+  esac
+
+  if ! git cat-file -e ":$file" 2>/dev/null; then
+    continue
+  fi
+
+  # Block very large blobs (> 1 MiB) to prevent accidental binary commits.
+  blob_size="$(git cat-file -s ":$file" 2>/dev/null || echo 0)"
+  if [ "$blob_size" -gt 1048576 ]; then
+    echo "pre-commit: staged file too large (>1MiB): $file ($blob_size bytes)" >&2
+    has_error=1
+  fi
+
+  # Skip text checks for binary staged files.
+  if git diff --cached --numstat -- "$file" | grep -Eq '^-'; then
+    continue
+  fi
+
+  # Block unresolved merge markers.
+  if git show ":$file" | grep -Eq '^(<<<<<<<|=======|>>>>>>>)'; then
+    echo "pre-commit: unresolved merge markers found in: $file" >&2
+    has_error=1
+  fi
+
+  # Block private key material.
+  if git show ":$file" | grep -Eq -- '-----BEGIN ((EC|RSA|OPENSSH) )?PRIVATE KEY-----'; then
+    echo "pre-commit: possible private key committed in: $file" >&2
+    has_error=1
+  fi
+
+  # Block trailing whitespace.
+  if git show ":$file" | grep -nE '[[:blank:]]+$' >/dev/null 2>&1; then
+    echo "pre-commit: trailing whitespace found in staged file: $file" >&2
+    has_error=1
+  fi
+done < "$TMP_LIST"
+
+if [ "$has_error" -ne 0 ]; then
+  echo "Commit blocked by pre-commit hook." >&2
+  echo "Fix the issues above or use --no-verify if you really need to bypass." >&2
+  exit 1
+fi

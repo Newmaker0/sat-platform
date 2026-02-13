@@ -1,0 +1,19 @@
+# Mobile (Android / Gradle)
+/.gradle/
+**/build/
+/captures/
+/local.properties
+/.idea/
+.externalNativeBuild/
+.cxx/
+/.kotlin/
+
+# Android build artifacts
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Keep daemon JVM criteria in VCS (Gradle recommendation)
+!gradle/gradle-daemon-jvm.properties

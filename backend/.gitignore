@@ -1,0 +1,7 @@
+# Backend (Spring Boot / Maven)
+/target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Maven local timing metadata
+.mvn/timing.properties

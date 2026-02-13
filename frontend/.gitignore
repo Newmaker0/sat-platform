@@ -1,0 +1,18 @@
+# Frontend (Angular)
+/node_modules/
+/dist/
+/tmp/
+/out-tsc/
+/bazel-out/
+/.angular/cache/
+/coverage/
+/.sass-cache/
+/typings/
+
+# Tooling logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+testem.log
+libpeerconnection.log
