@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +7,272 @@
 @layer base {
   body {
     @apply m-0 bg-slate-100 text-slate-900 antialiased;
-    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: "Plus Jakarta Sans", Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+}
+
+.cdk-overlay-pane .sat-user-menu,
+.sat-user-menu.mat-mdc-menu-panel {
+  min-width: 240px !important;
+  max-width: 260px !important;
+  margin-left: 0.45rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  box-shadow: 0 14px 30px -18px rgba(15, 23, 42, 0.45);
+}
+
+.cdk-overlay-pane .sat-user-menu .mat-mdc-menu-content,
+.sat-user-menu .mat-mdc-menu-content {
+  padding: 0.3rem;
+}
+
+.cdk-overlay-pane .sat-user-menu .mat-divider,
+.sat-user-menu .mat-divider {
+  border-top-color: rgb(226 232 240);
+}
+
+.sat-user-menu .sat-menu-header {
+  padding: 0.45rem;
+}
+
+.sat-user-menu .sat-menu-item {
+  min-height: 2.1rem;
+  border-radius: 0.45rem;
+  margin: 0.05rem 0;
+  padding: 0 0.4rem;
+}
+
+.sat-user-menu .sat-menu-item-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sat-user-menu .sat-menu-item-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgb(15 23 42);
+}
+
+.sat-user-menu .sat-menu-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.95rem;
+  color: rgb(71 85 105);
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel {
+  border-radius: 0.7rem !important;
+  border: 1px solid rgb(226 232 240);
+  padding: 0.25rem !important;
+  box-shadow: 0 14px 30px -18px rgba(15, 23, 42, 0.4);
+}
+
+.cdk-overlay-pane .mat-mdc-option {
+  min-height: 2rem !important;
+  border-radius: 0.45rem;
+  margin: 0.05rem 0;
+}
+
+.cdk-overlay-pane .mat-mdc-option .mdc-list-item__primary-text {
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.sat-reports-table .mdc-data-table__table {
+  min-width: 720px;
+}
+
+.sat-reports-table .sat-reports-data-table {
+  table-layout: fixed;
+}
+
+.sat-reports-table .mat-column-nome {
+  width: 42%;
+}
+
+.sat-reports-table .mat-column-categoria {
+  width: 19%;
+}
+
+.sat-reports-table .mat-column-atualizadoEm {
+  width: 22%;
+}
+
+.sat-reports-table .mat-column-status {
+  width: 17%;
+}
+
+.sat-reports-table .mdc-data-table__header-cell {
+  color: rgb(100 116 139);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  height: 2.55rem;
+}
+
+.sat-reports-table .mdc-data-table__cell {
+  color: rgb(15 23 42);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.sat-reports-table .sat-cell-ellipsis {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sat-status-pill {
+  min-width: 5.75rem;
+  justify-content: center;
+  letter-spacing: 0.01em;
+}
+
+.sat-reports-table .mdc-data-table__row {
+  height: 2.8rem;
+}
+
+.sat-reports-table .mat-mdc-paginator {
+  border-top: 1px solid rgb(226 232 240);
+  border-radius: 0 0 0.65rem 0.65rem;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-text-field-wrapper {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  border-radius: 0.55rem;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-form-field {
+  width: 5.1rem;
+  min-width: 5.1rem;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-page-size-select .mat-mdc-form-field-flex {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-form-field-infix {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  height: 100%;
+  line-height: 1;
+  padding-inline: 0.1rem;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-select-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  max-width: none;
+  overflow: visible;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-select-value-text {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-select-min-line {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-select-arrow-wrapper {
+  flex-shrink: 0;
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-page-size-label {
+  font-size: 0.88rem;
+  color: rgb(51 65 85);
+}
+
+.sat-reports-table .mat-mdc-paginator .mat-mdc-icon-button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.35rem;
+  border-radius: 0.45rem;
+}
+
+@media (max-width: 767px) {
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    min-height: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-range-label {
+    margin: 0;
+    font-size: 0.92rem;
+    flex: 0 0 auto;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-range-actions {
+    margin-left: 0;
+    gap: 0.1rem;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-page-size {
+    order: -1;
+    margin: 0;
+    margin-right: auto;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-page-size-label {
+    margin: 0;
+    white-space: nowrap;
+    font-size: 0.86rem;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-form-field {
+    width: 4.6rem;
+    min-width: 4.6rem;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-icon-button {
+    width: 1.85rem;
+    height: 1.85rem;
+    padding: 0.3rem;
+  }
+
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-navigation-first,
+  .sat-reports-table .mat-mdc-paginator .mat-mdc-paginator-navigation-last {
+    display: none;
   }
 }

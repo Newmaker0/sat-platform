@@ -1,4 +1,5 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { MatMenuTrigger } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 
@@ -13,6 +14,8 @@ interface DashboardLink {
   styleUrls: ['./dashboard-layout.component.css']
 })
 export class DashboardLayoutComponent {
+  @ViewChild(MatMenuTrigger) userMenuTrigger?: MatMenuTrigger;
+
   readonly user$ = this.authService.user$;
   readonly links: readonly DashboardLink[] = [
     { label: 'Visão geral', path: 'overview' },
@@ -22,8 +25,6 @@ export class DashboardLayoutComponent {
 
   isSidebarOpen = false;
   isUserMenuOpen = false;
-  userMenuStyles: Record<string, string> = {};
-  private userMenuTriggerElement?: HTMLElement;
 
   constructor(
     private readonly authService: AuthService,
@@ -39,17 +40,16 @@ export class DashboardLayoutComponent {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
-  toggleUserMenu(event: MouseEvent): void {
-    if (this.isUserMenuOpen) {
-      this.closeUserMenu();
-      return;
-    }
+  onUserMenuOpened(): void {
+    this.isUserMenuOpen = true;
+  }
 
-    this.openUserMenu(event.currentTarget as HTMLElement | null);
+  onUserMenuClosed(): void {
+    this.isUserMenuOpen = false;
   }
 
   closeUserMenu(): void {
-    this.isUserMenuOpen = false;
+    this.userMenuTrigger?.closeMenu();
   }
 
   goToSettings(): void {
@@ -64,57 +64,10 @@ export class DashboardLayoutComponent {
     this.router.navigateByUrl('/dashboard/reports');
   }
 
-  @HostListener('window:resize')
-  @HostListener('window:scroll')
-  onViewportChange(): void {
-    if (!this.isUserMenuOpen) {
-      return;
-    }
-
-    this.updateUserMenuPosition();
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.closeUserMenu();
-  }
-
   logout(): void {
     this.authService.logout();
     this.closeUserMenu();
     this.closeSidebar();
     this.router.navigateByUrl('/login');
-  }
-
-  private openUserMenu(trigger: HTMLElement | null): void {
-    if (!trigger) {
-      return;
-    }
-
-    this.userMenuTriggerElement = trigger;
-    this.updateUserMenuPosition();
-    this.isUserMenuOpen = true;
-  }
-
-  private updateUserMenuPosition(): void {
-    const trigger = this.userMenuTriggerElement;
-    if (!trigger) {
-      return;
-    }
-
-    const viewportPadding = 16;
-    const rect = trigger.getBoundingClientRect();
-    const width = Math.min(352, Math.max(280, rect.width));
-    const left = Math.max(
-      viewportPadding,
-      Math.min(rect.left, window.innerWidth - width - viewportPadding)
-    );
-
-    this.userMenuStyles = {
-      width: `${width}px`,
-      left: `${left}px`,
-      bottom: `${window.innerHeight - rect.top + 8}px`,
-      maxHeight: `${Math.max(220, rect.top - viewportPadding)}px`
-    };
   }
 }
