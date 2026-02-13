@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 
@@ -13,8 +13,6 @@ interface DashboardLink {
   styleUrls: ['./dashboard-layout.component.css']
 })
 export class DashboardLayoutComponent {
-  @ViewChild('userMenuContainer') userMenuContainer?: ElementRef<HTMLElement>;
-
   readonly user$ = this.authService.user$;
   readonly links: readonly DashboardLink[] = [
     { label: 'Visão geral', path: 'overview' },
@@ -24,6 +22,8 @@ export class DashboardLayoutComponent {
 
   isSidebarOpen = false;
   isUserMenuOpen = false;
+  userMenuStyles: Record<string, string> = {};
+  private userMenuTriggerElement?: HTMLElement;
 
   constructor(
     private readonly authService: AuthService,
@@ -40,8 +40,12 @@ export class DashboardLayoutComponent {
   }
 
   toggleUserMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.isUserMenuOpen = !this.isUserMenuOpen;
+    if (this.isUserMenuOpen) {
+      this.closeUserMenu();
+      return;
+    }
+
+    this.openUserMenu(event.currentTarget as HTMLElement | null);
   }
 
   closeUserMenu(): void {
@@ -60,21 +64,19 @@ export class DashboardLayoutComponent {
     this.router.navigateByUrl('/dashboard/reports');
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onViewportChange(): void {
     if (!this.isUserMenuOpen) {
       return;
     }
 
-    const target = event.target as Node | null;
-    const container = this.userMenuContainer?.nativeElement;
-    if (!target || !container) {
-      return;
-    }
+    this.updateUserMenuPosition();
+  }
 
-    if (!container.contains(target)) {
-      this.closeUserMenu();
-    }
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeUserMenu();
   }
 
   logout(): void {
@@ -82,5 +84,37 @@ export class DashboardLayoutComponent {
     this.closeUserMenu();
     this.closeSidebar();
     this.router.navigateByUrl('/login');
+  }
+
+  private openUserMenu(trigger: HTMLElement | null): void {
+    if (!trigger) {
+      return;
+    }
+
+    this.userMenuTriggerElement = trigger;
+    this.updateUserMenuPosition();
+    this.isUserMenuOpen = true;
+  }
+
+  private updateUserMenuPosition(): void {
+    const trigger = this.userMenuTriggerElement;
+    if (!trigger) {
+      return;
+    }
+
+    const viewportPadding = 16;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(352, Math.max(280, rect.width));
+    const left = Math.max(
+      viewportPadding,
+      Math.min(rect.left, window.innerWidth - width - viewportPadding)
+    );
+
+    this.userMenuStyles = {
+      width: `${width}px`,
+      left: `${left}px`,
+      bottom: `${window.innerHeight - rect.top + 8}px`,
+      maxHeight: `${Math.max(220, rect.top - viewportPadding)}px`
+    };
   }
 }
