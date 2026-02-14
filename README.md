@@ -96,6 +96,9 @@ Em ambiente de desenvolvimento, um usuário "user" é gerado automaticamente no 
 - Implementação da sincronização offline no mobile
 - Integração entre backend, mobile e dashboard
 
+Para acompanhar o escopo fechado do teste:
+- `Mapa_MVP.md`
+
 ---
 
 ## ✅ Git Hooks
