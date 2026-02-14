@@ -23,7 +23,7 @@ class SatOrbitalSceneElement extends HTMLElement {
   private reduceMotion = false;
 
   private planet?: THREE.Mesh;
-  private clouds?: THREE.Mesh;
+  private globeDots?: THREE.Points;
   private atmosphere?: THREE.Mesh;
   private satellite?: THREE.Group;
   private readonly planetRadius = 1.75;
@@ -38,7 +38,9 @@ class SatOrbitalSceneElement extends HTMLElement {
 
   private trailPositions?: Float32Array;
   private trailGeometry?: THREE.BufferGeometry;
+  private ownedTextures: THREE.Texture[] = [];
   private lastSignalAt = 0;
+  private hasEmittedReady = false;
 
   private signalArcs: { line: THREE.Line; ring: THREE.Mesh; life: number }[] = [];
   private pulseRings: { ring: THREE.Mesh; life: number }[] = [];
@@ -60,6 +62,7 @@ class SatOrbitalSceneElement extends HTMLElement {
     }
 
     this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.hasEmittedReady = false;
 
     this.initScene();
     this.observeResize();
@@ -97,7 +100,6 @@ class SatOrbitalSceneElement extends HTMLElement {
     this.composer = undefined;
     this.bloomPass = undefined;
     this.planet = undefined;
-    this.clouds = undefined;
     this.atmosphere = undefined;
     this.satellite = undefined;
     this.trailPositions = undefined;
@@ -105,6 +107,9 @@ class SatOrbitalSceneElement extends HTMLElement {
     this.signalArcs = [];
     this.pulseRings = [];
     this.lastSignalAt = 0;
+    this.hasEmittedReady = false;
+    this.ownedTextures.forEach((texture) => texture.dispose());
+    this.ownedTextures = [];
   }
 
   private initScene(): void {
@@ -125,7 +130,7 @@ class SatOrbitalSceneElement extends HTMLElement {
     camera.position.set(0.22, 0.1, 9.4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.3));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setClearColor(0x020617, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -169,42 +174,22 @@ class SatOrbitalSceneElement extends HTMLElement {
   }
 
   private setupPlanetSystem(scene: THREE.Scene): void {
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin('anonymous');
-
-    const surfaceUrl = 'https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg';
-    const cloudsUrl = 'https://threejs.org/examples/textures/earth_clouds_1024.png';
-
-    const surfaceMap = loader.load(surfaceUrl);
-    surfaceMap.colorSpace = THREE.SRGBColorSpace;
+    const surfaceMap = this.createSurfaceTexture();
 
     const planet = new THREE.Mesh(
-      new THREE.SphereGeometry(this.planetRadius, 64, 64),
+      new THREE.SphereGeometry(this.planetRadius, 48, 48),
       new THREE.MeshStandardMaterial({
         map: surfaceMap,
-        color: 0x2746b6,
-        roughness: 0.92,
+        color: 0x1d4da8,
+        roughness: 0.9,
         metalness: 0.02,
         emissive: 0x0b163a,
-        emissiveIntensity: 0.28
-      })
-    );
-
-    const cloudMap = loader.load(cloudsUrl);
-    cloudMap.colorSpace = THREE.SRGBColorSpace;
-
-    const clouds = new THREE.Mesh(
-      new THREE.SphereGeometry(this.planetRadius * 1.012, 64, 64),
-      new THREE.MeshLambertMaterial({
-        map: cloudMap,
-        transparent: true,
-        opacity: 0.12,
-        depthWrite: false
+        emissiveIntensity: 0.24
       })
     );
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(this.planetRadius * 1.07, 64, 64),
+      new THREE.SphereGeometry(this.planetRadius * 1.07, 48, 48),
       new THREE.MeshBasicMaterial({
         color: 0x3b82f6,
         transparent: true,
@@ -214,11 +199,178 @@ class SatOrbitalSceneElement extends HTMLElement {
       })
     );
 
-    scene.add(planet, clouds, atmosphere);
+    scene.add(planet, atmosphere);
 
     this.planet = planet;
-    this.clouds = clouds;
     this.atmosphere = atmosphere;
+    this.loadEarthWaterTexture();
+  }
+
+  private createSurfaceTexture(): THREE.CanvasTexture {
+    const width = 1024;
+    const height = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      const fallback = new THREE.CanvasTexture(canvas);
+      fallback.colorSpace = THREE.SRGBColorSpace;
+      return fallback;
+    }
+
+    const oceanGradient = context.createLinearGradient(0, 0, 0, height);
+    oceanGradient.addColorStop(0, '#173a9f');
+    oceanGradient.addColorStop(0.45, '#1f4acc');
+    oceanGradient.addColorStop(1, '#0e2465');
+    context.fillStyle = oceanGradient;
+    context.fillRect(0, 0, width, height);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    this.ownedTextures.push(texture);
+    return texture;
+  }
+
+  private loadEarthWaterTexture(): void {
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      '/assets/Earth_Water.webp',
+      (texture) => {
+        if (!this.planet || !this.scene) {
+          texture.dispose();
+          return;
+        }
+
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        this.ownedTextures.push(texture);
+
+        const planetMaterial = this.planet.material as THREE.MeshStandardMaterial;
+        planetMaterial.map = texture;
+        planetMaterial.needsUpdate = true;
+
+        const image = texture.image as TexImageSource | undefined;
+        if (image) {
+          this.setupStripeDotsLayer(image);
+        }
+      },
+      undefined,
+      (error) => {
+        // Keep fallback generated texture if the asset is unavailable.
+        console.warn('Falha ao carregar /assets/Earth_Water.webp', error);
+      }
+    );
+  }
+
+  private setupStripeDotsLayer(image: TexImageSource): void {
+    if (!this.scene) {
+      return;
+    }
+
+    const imageData = this.extractImageData(image);
+    if (!imageData) {
+      return;
+    }
+
+    if (this.globeDots) {
+      this.scene.remove(this.globeDots);
+      this.globeDots.geometry.dispose();
+      (this.globeDots.material as THREE.Material).dispose();
+    }
+
+    const sphereGeometry = new THREE.SphereGeometry(this.planetRadius * 1.012, 220, 140);
+    const spherePositions = sphereGeometry.getAttribute('position');
+    const sphereUvs = sphereGeometry.getAttribute('uv');
+
+    const positions: number[] = [];
+    const random = this.seededRandom(22031991);
+
+    for (let i = 0; i < spherePositions.count; i += 1) {
+      const u = sphereUvs.getX(i);
+      const v = sphereUvs.getY(i);
+      const maskStrength = this.sampleMask(imageData, u, v);
+
+      if (maskStrength < 0.45) {
+        continue;
+      }
+
+      if (random() < 0.14) {
+        continue;
+      }
+
+      positions.push(spherePositions.getX(i), spherePositions.getY(i), spherePositions.getZ(i));
+    }
+
+    sphereGeometry.dispose();
+
+    const dotsGeometry = new THREE.BufferGeometry();
+    dotsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    const dotsMaterial = new THREE.PointsMaterial({
+      color: 0x3ea3ff,
+      size: 0.013,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.NormalBlending
+    });
+
+    this.globeDots = new THREE.Points(dotsGeometry, dotsMaterial);
+    this.scene.add(this.globeDots);
+  }
+
+  private extractImageData(source: TexImageSource): ImageData | null {
+    const width = (source as { width?: number }).width ?? 0;
+    const height = (source as { height?: number }).height ?? 0;
+    if (!width || !height) {
+      return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
+    }
+
+    context.drawImage(source as CanvasImageSource, 0, 0, width, height);
+    return context.getImageData(0, 0, width, height);
+  }
+
+  private sampleMask(imageData: ImageData, u: number, v: number): number {
+    // Sample away from texture borders to avoid UV seam artifacts (vertical line over the Pacific).
+    const safeU = Math.min(0.999, Math.max(0.001, u));
+    const safeV = Math.min(0.999, Math.max(0.001, v));
+    const x = Math.floor(safeU * (imageData.width - 2)) + 1;
+    const y = Math.floor((1 - safeV) * (imageData.height - 2)) + 1;
+    const index = (y * imageData.width + x) * 4;
+
+    const red = imageData.data[index] ?? 0;
+    const green = imageData.data[index + 1] ?? 0;
+    const blue = imageData.data[index + 2] ?? 0;
+    const alpha = (imageData.data[index + 3] ?? 0) / 255;
+
+    const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+    const alphaLand = 1 - alpha;
+    const darkLand = Math.max(0, (0.4 - luminance) / 0.4);
+
+    return Math.max(alphaLand, darkLand);
+  }
+
+  private seededRandom(seed: number): () => number {
+    let current = seed >>> 0;
+    return () => {
+      current = (1664525 * current + 1013904223) >>> 0;
+      return current / 4294967296;
+    };
   }
 
   private setupOrbit(scene: THREE.Scene): void {
@@ -344,9 +496,11 @@ class SatOrbitalSceneElement extends HTMLElement {
 
     this.updateSatellite(elapsed);
 
-    if (!this.reduceMotion && this.planet && this.clouds && this.atmosphere) {
+    if (!this.reduceMotion && this.planet && this.atmosphere) {
       this.planet.rotation.y += 0.0012;
-      this.clouds.rotation.y += 0.0016;
+      if (this.globeDots) {
+        this.globeDots.rotation.y += 0.0012;
+      }
       this.atmosphere.rotation.y += 0.0007;
 
       if (elapsed - this.lastSignalAt >= this.signalInterval) {
@@ -358,10 +512,15 @@ class SatOrbitalSceneElement extends HTMLElement {
     }
 
     if (!this.reduceMotion && this.bloomPass) {
-      this.bloomPass.strength = 0.2 + Math.sin(elapsed * 1.5) * 0.04;
+      this.bloomPass.strength = 0.2;
     }
 
     this.composer.render();
+
+    if (!this.hasEmittedReady) {
+      this.hasEmittedReady = true;
+      this.dispatchEvent(new CustomEvent('orbitalready', { bubbles: true, composed: true }));
+    }
   };
 
   private updateSatellite(elapsed: number): void {
