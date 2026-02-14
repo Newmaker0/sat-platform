@@ -5,7 +5,6 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 class SatOrbitalSceneElement extends HTMLElement {
   static readonly template = document.createElement('template');
-  private static readonly surfaceNormal = new THREE.Vector3();
   private static readonly ringDefaultNormal = new THREE.Vector3(0, 0, 1);
 
   private sceneContainer?: HTMLDivElement;
@@ -42,8 +41,17 @@ class SatOrbitalSceneElement extends HTMLElement {
   private lastSignalAt = 0;
   private hasEmittedReady = false;
 
-  private signalArcs: { line: THREE.Line; ring: THREE.Mesh; life: number }[] = [];
-  private pulseRings: { ring: THREE.Mesh; life: number }[] = [];
+  private signalArcs: Array<{
+    line: THREE.Line;
+    material: THREE.LineBasicMaterial;
+    pointCount: number;
+    headProgress: number;
+    trailLength: number;
+    speed: number;
+    targetNormal: THREE.Vector3;
+    landed: boolean;
+  }> = [];
+  private pulseRings: Array<{ ring: THREE.Mesh; life: number; surfaceNormal: THREE.Vector3 }> = [];
 
   connectedCallback(): void {
     if (!this.shadowRoot) {
@@ -529,11 +537,15 @@ class SatOrbitalSceneElement extends HTMLElement {
     }
 
     const angle = elapsed * this.orbitSpeed;
-    const x = this.orbitA * Math.cos(angle);
-    const yOrbit = this.orbitB * Math.sin(angle);
-
-    const y = yOrbit * Math.cos(this.orbitTilt);
-    const z = yOrbit * Math.sin(this.orbitTilt);
+    const phase = angle + Math.sin(elapsed * 0.21) * 0.24;
+    const radialWobble = Math.sin(elapsed * 0.63) * 0.22 + Math.sin(elapsed * 1.18 + 1.3) * 0.08;
+    const localA = this.orbitA + radialWobble;
+    const localB = this.orbitB + radialWobble * 0.72;
+    const yOrbit = localB * Math.sin(phase);
+    const dynamicTilt = this.orbitTilt + Math.sin(elapsed * 0.31) * 0.1;
+    const x = localA * Math.cos(phase);
+    const y = yOrbit * Math.cos(dynamicTilt);
+    const z = yOrbit * Math.sin(dynamicTilt) + Math.sin(elapsed * 0.57) * 0.16;
 
     this.satellite.position.set(x, y, z);
     this.satellite.lookAt(0, 0, 0);
@@ -561,95 +573,92 @@ class SatOrbitalSceneElement extends HTMLElement {
     const camDirection = this.camera.position.clone().normalize();
     const satDirection = start.clone().normalize();
     const blendedDirection = satDirection
-      .multiplyScalar(0.7)
-      .add(camDirection.multiplyScalar(0.3))
+      .clone()
+      .multiplyScalar(0.56)
+      .add(camDirection.multiplyScalar(0.44))
       .normalize();
-
     const end = blendedDirection.multiplyScalar(this.planetRadius);
     const mid = start.clone().add(end).multiplyScalar(0.5);
+    const lateralAxis = new THREE.Vector3().crossVectors(start, end);
+    if (lateralAxis.lengthSq() < 1e-5) {
+      lateralAxis.set(0, 1, 0);
+    } else {
+      lateralAxis.normalize();
+    }
     const control = mid
       .clone()
       .normalize()
-      .multiplyScalar(this.planetRadius + 1.55);
+      .multiplyScalar(this.planetRadius + 2.25)
+      .add(lateralAxis.multiplyScalar(0.34));
 
     const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-    const points = curve.getPoints(90);
+    const points = curve.getPoints(84);
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-    const material = new THREE.LineDashedMaterial({
+    const material = new THREE.LineBasicMaterial({
       color: this.signalColor,
       transparent: true,
-      opacity: 0.86,
-      dashSize: 0.24,
-      gapSize: 0.18,
-      depthWrite: false
+      opacity: 0.8,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
     });
 
     const line = new THREE.Line(geometry, material);
-    line.computeLineDistances();
+    geometry.setDrawRange(0, 0);
     this.scene.add(line);
 
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.055, 0.088, 40),
-      new THREE.MeshBasicMaterial({
-        color: this.signalColor,
-        transparent: true,
-        opacity: 0.62,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      })
-    );
-    const surfaceNormal = SatOrbitalSceneElement.surfaceNormal.copy(end).normalize();
-    ring.position.copy(surfaceNormal).multiplyScalar(this.planetRadius * 1.01);
-    ring.quaternion.setFromUnitVectors(SatOrbitalSceneElement.ringDefaultNormal, surfaceNormal);
-    this.scene.add(ring);
-
-    this.signalArcs.push({ line, ring, life: 1 });
+    this.signalArcs.push({
+      line,
+      material,
+      pointCount: points.length,
+      headProgress: 0,
+      trailLength: 0.16,
+      speed: 1.2,
+      targetNormal: end.clone().normalize(),
+      landed: false
+    });
     if (this.signalArcs.length > 7) {
       const arc = this.signalArcs.shift();
       if (arc) {
         this.disposeSignalArc(arc);
       }
     }
-
-    const pulseRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.05, 0.07, 48),
-      new THREE.MeshBasicMaterial({
-        color: this.signalColor,
-        transparent: true,
-        opacity: 0.7,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      })
-    );
-    pulseRing.position.copy(start);
-    pulseRing.lookAt(this.camera.position);
-    this.scene.add(pulseRing);
-    this.pulseRings.push({ ring: pulseRing, life: 1 });
   }
 
   private updateSignals(delta: number): void {
-    if (!this.scene || !this.camera || !this.satellite) {
+    if (!this.scene) {
       return;
     }
 
     for (let i = this.signalArcs.length - 1; i >= 0; i -= 1) {
       const arc = this.signalArcs[i];
-      arc.life -= delta * 1.15;
+      arc.headProgress += delta * arc.speed;
 
-      if (arc.life <= 0) {
-        this.signalArcs.splice(i, 1);
-        this.disposeSignalArc(arc);
-        continue;
+      const head = Math.min(arc.headProgress, 1);
+      const tail = Math.max(0, head - arc.trailLength);
+      const startIndex = Math.floor(tail * (arc.pointCount - 1));
+      const endIndex = Math.floor(head * (arc.pointCount - 1));
+      const drawCount = Math.max(0, endIndex - startIndex + 1);
+
+      const lineGeometry = arc.line.geometry as THREE.BufferGeometry;
+      lineGeometry.setDrawRange(startIndex, drawCount);
+
+      if (!arc.landed && head >= 1) {
+        arc.landed = true;
+        this.spawnSurfacePing(arc.targetNormal);
       }
 
-      const lineMaterial = arc.line.material as THREE.LineDashedMaterial;
-      lineMaterial.opacity = arc.life * 0.86;
+      if (arc.headProgress <= 1) {
+        arc.material.opacity = 0.35 + head * 0.55;
+      } else {
+        const fade = Math.max(0, 1 - (arc.headProgress - 1) / 0.24);
+        arc.material.opacity = fade * 0.68;
+      }
 
-      const ringMaterial = arc.ring.material as THREE.MeshBasicMaterial;
-      ringMaterial.opacity = arc.life * 0.62;
-      const ringScale = 1 + (1 - arc.life) * 0.65;
-      arc.ring.scale.setScalar(ringScale);
+      if (arc.headProgress >= 1.24) {
+        this.signalArcs.splice(i, 1);
+        this.disposeSignalArc(arc);
+      }
     }
 
     for (let i = this.pulseRings.length - 1; i >= 0; i -= 1) {
@@ -665,8 +674,38 @@ class SatOrbitalSceneElement extends HTMLElement {
       const pulseMaterial = pulse.ring.material as THREE.MeshBasicMaterial;
       pulseMaterial.opacity = pulse.life * 0.7;
       pulse.ring.scale.setScalar(1 + (1 - pulse.life) * 4.5);
-      pulse.ring.position.copy(this.satellite.position);
-      pulse.ring.lookAt(this.camera.position);
+      pulse.ring.position.copy(pulse.surfaceNormal).multiplyScalar(this.planetRadius * 1.014);
+    }
+  }
+
+  private spawnSurfacePing(surfaceNormal: THREE.Vector3): void {
+    if (!this.scene) {
+      return;
+    }
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.05, 0.072, 48),
+      new THREE.MeshBasicMaterial({
+        color: this.signalColor,
+        transparent: true,
+        opacity: 0.72,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      })
+    );
+
+    ring.position.copy(surfaceNormal).multiplyScalar(this.planetRadius * 1.014);
+    ring.quaternion.setFromUnitVectors(SatOrbitalSceneElement.ringDefaultNormal, surfaceNormal);
+
+    this.scene.add(ring);
+    this.pulseRings.push({ ring, life: 1, surfaceNormal: surfaceNormal.clone() });
+
+    if (this.pulseRings.length > 14) {
+      const pulse = this.pulseRings.shift();
+      if (pulse) {
+        this.disposePulseRing(pulse);
+      }
     }
   }
 
@@ -680,16 +719,26 @@ class SatOrbitalSceneElement extends HTMLElement {
     }
   }
 
-  private disposeSignalArc(arc: { line: THREE.Line; ring: THREE.Mesh; life: number }): void {
+  private disposeSignalArc(arc: {
+    line: THREE.Line;
+    material: THREE.LineBasicMaterial;
+    pointCount: number;
+    headProgress: number;
+    trailLength: number;
+    speed: number;
+    targetNormal: THREE.Vector3;
+    landed: boolean;
+  }): void {
     this.scene?.remove(arc.line);
-    this.scene?.remove(arc.ring);
     arc.line.geometry.dispose();
     (arc.line.material as THREE.Material).dispose();
-    arc.ring.geometry.dispose();
-    (arc.ring.material as THREE.Material).dispose();
   }
 
-  private disposePulseRing(pulse: { ring: THREE.Mesh; life: number }): void {
+  private disposePulseRing(pulse: {
+    ring: THREE.Mesh;
+    life: number;
+    surfaceNormal: THREE.Vector3;
+  }): void {
     this.scene?.remove(pulse.ring);
     pulse.ring.geometry.dispose();
     (pulse.ring.material as THREE.Material).dispose();

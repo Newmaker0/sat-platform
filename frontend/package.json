@@ -53,6 +53,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "lint-staged": "^15.5.2",
+    "lite-server": "^2.6.1",
     "postcss": "^8.4.31",
     "prettier": "^3.8.1",
     "sass": "^1.97.3",
