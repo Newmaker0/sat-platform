@@ -12,10 +12,13 @@ const routes: Routes = [
     component: DashboardLayoutComponent,
     canActivate: [AuthGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'overview' },
-      { path: 'overview', component: OverviewComponent },
-      { path: 'reports', component: ReportsComponent },
-      { path: 'settings', component: SettingsComponent }
+      { path: '', pathMatch: 'full', redirectTo: 'estoque' },
+      { path: 'estoque', component: OverviewComponent },
+      { path: 'atividades', component: ReportsComponent },
+      { path: 'configuracoes', component: SettingsComponent },
+      { path: 'overview', pathMatch: 'full', redirectTo: 'estoque' },
+      { path: 'reports', pathMatch: 'full', redirectTo: 'atividades' },
+      { path: 'settings', pathMatch: 'full', redirectTo: 'configuracoes' }
     ]
   }
 ];

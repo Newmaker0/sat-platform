@@ -1,12 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
+import { DashboardMockDataService } from '../../data-access/dashboard-mock-data.service';
+import {
+  ApplicationStatus,
+  ConsumptionActivity,
+  EventType,
+  NonAppliedReason
+} from '../../models/consumption-activity.model';
 
-interface ReportRow {
-  readonly id: string;
-  readonly nome: string;
-  readonly categoria: string;
-  readonly atualizadoEm: string;
-  readonly status: 'Pronto' | 'Agendado' | 'Processando';
+type ActivityFilter = 'TODOS' | 'APLICADOS' | 'EXCECOES' | 'AJUSTES';
+
+interface FilterOption {
+  readonly value: ActivityFilter;
+  readonly label: string;
 }
 
 @Component({
@@ -15,70 +21,56 @@ interface ReportRow {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReportsComponent {
-  readonly displayedColumns: string[] = ['nome', 'categoria', 'atualizadoEm', 'status'];
-  readonly pageSizeOptions: readonly number[] = [5, 10, 20];
-  readonly reports: readonly ReportRow[] = [
-    {
-      id: 'inventario-mensal',
-      nome: 'Inventário mensal',
-      categoria: 'Estoque',
-      atualizadoEm: 'Hoje, 09:15',
-      status: 'Pronto'
-    },
-    {
-      id: 'ruptura-de-pecas',
-      nome: 'Ruptura de peças',
-      categoria: 'Estoque',
-      atualizadoEm: 'Hoje, 06:50',
-      status: 'Processando'
-    },
-    {
-      id: 'produtividade-dos-tecnicos',
-      nome: 'Produtividade dos técnicos',
-      categoria: 'Operações',
-      atualizadoEm: 'Ontem, 18:40',
-      status: 'Pronto'
-    },
-    {
-      id: 'previsao-de-consumo',
-      nome: 'Previsão de consumo',
-      categoria: 'Planejamento',
-      atualizadoEm: 'Há 3 dias',
-      status: 'Pronto'
-    },
-    {
-      id: 'pendencias-por-regional',
-      nome: 'Pendências por regional',
-      categoria: 'Operações',
-      atualizadoEm: 'Hoje, 08:00',
-      status: 'Agendado'
-    },
-    {
-      id: 'tempo-medio-de-atendimento',
-      nome: 'Tempo médio de atendimento',
-      categoria: 'Performance',
-      atualizadoEm: 'Hoje, 07:30',
-      status: 'Pronto'
-    },
-    {
-      id: 'conciliacao-de-sincronizacoes',
-      nome: 'Conciliação de sincronizações',
-      categoria: 'Offline',
-      atualizadoEm: 'Ontem, 23:10',
-      status: 'Agendado'
-    }
+  readonly displayedColumns: string[] = [
+    'eventId',
+    'tipoEvento',
+    'astronauta',
+    'itemNome',
+    'quantidade',
+    'statusAplicacao',
+    'motivo',
+    'acoes'
   ];
+  readonly pageSizeOptions: readonly number[] = [5, 10, 20];
+  readonly filterOptions: readonly FilterOption[] = [
+    { value: 'TODOS', label: 'Todos' },
+    { value: 'EXCECOES', label: 'Exceções' },
+    { value: 'APLICADOS', label: 'Aplicados' },
+    { value: 'AJUSTES', label: 'Ajustes' }
+  ];
+
+  readonly activities = this.dashboardData.getActivities();
 
   pageSize = this.pageSizeOptions[0];
   pageIndex = 0;
+  activeFilter: ActivityFilter = 'TODOS';
+  actionFeedback: string | null = null;
 
-  get totalReports(): number {
-    return this.reports.length;
+  constructor(private readonly dashboardData: DashboardMockDataService) {}
+
+  get totalActivities(): number {
+    return this.filteredActivities.length;
   }
 
-  get pagedReports(): readonly ReportRow[] {
+  get filteredActivities(): readonly ConsumptionActivity[] {
+    if (this.activeFilter === 'APLICADOS') {
+      return this.activities.filter((activity) => activity.statusAplicacao === 'APLICADO');
+    }
+
+    if (this.activeFilter === 'EXCECOES') {
+      return this.activities.filter((activity) => activity.statusAplicacao === 'NAO_APLICADO');
+    }
+
+    if (this.activeFilter === 'AJUSTES') {
+      return this.activities.filter((activity) => activity.tipoEvento === 'AJUSTE');
+    }
+
+    return this.activities;
+  }
+
+  get pagedActivities(): readonly ConsumptionActivity[] {
     const start = this.pageIndex * this.pageSize;
-    return this.reports.slice(start, start + this.pageSize);
+    return this.filteredActivities.slice(start, start + this.pageSize);
   }
 
   onPageChange(event: PageEvent): void {
@@ -86,17 +78,71 @@ export class ReportsComponent {
     this.pageIndex = event.pageIndex;
   }
 
-  trackByReportId(_: number, row: ReportRow): string {
-    return row.id;
+  onFilterChange(filter: ActivityFilter): void {
+    this.activeFilter = filter;
+    this.pageIndex = 0;
+    this.actionFeedback = null;
   }
 
-  getStatusClasses(status: ReportRow['status']): string {
-    if (status === 'Pronto') {
+  onAction(event: ConsumptionActivity): void {
+    if (event.tipoEvento === 'AJUSTE') {
+      this.actionFeedback = `Fluxo mock: abrindo histórico do ajuste ${event.eventId}.`;
+      return;
+    }
+
+    if (event.statusAplicacao === 'NAO_APLICADO') {
+      this.actionFeedback = `Fluxo mock: abrir investigação de exceção para ${event.eventId}.`;
+      return;
+    }
+
+    this.actionFeedback = `Fluxo mock: iniciar ajuste corretivo para ${event.eventId}.`;
+  }
+
+  clearActionFeedback(): void {
+    this.actionFeedback = null;
+  }
+
+  trackByActivityId(_: number, row: ConsumptionActivity): string {
+    return row.eventId;
+  }
+
+  getApplicationStatusLabel(status: ApplicationStatus): string {
+    return this.dashboardData.getApplicationStatusLabel(status);
+  }
+
+  getEventTypeLabel(type: EventType): string {
+    return this.dashboardData.getEventTypeLabel(type);
+  }
+
+  getReasonLabel(reason?: NonAppliedReason): string {
+    return this.dashboardData.getReasonLabel(reason);
+  }
+
+  getApplicationStatusClasses(status: ApplicationStatus): string {
+    if (status === 'APLICADO') {
       return 'bg-emerald-100 text-emerald-700';
     }
-    if (status === 'Agendado') {
-      return 'bg-amber-100 text-amber-700';
+
+    return 'bg-rose-100 text-rose-700';
+  }
+
+  getEventTypeClasses(type: EventType): string {
+    if (type === 'AJUSTE') {
+      return 'bg-sky-100 text-sky-700';
     }
-    return 'bg-sky-100 text-sky-700';
+
+    return 'bg-slate-200 text-slate-700';
+  }
+
+  getActionLabel(event: ConsumptionActivity): string {
+    if (event.tipoEvento === 'AJUSTE') {
+      return 'Ver ajuste';
+    }
+
+    if (event.statusAplicacao === 'NAO_APLICADO') {
+      return 'Investigar';
+    }
+
+    return 'Registrar ajuste';
   }
 }

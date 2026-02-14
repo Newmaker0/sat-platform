@@ -69,27 +69,43 @@
 }
 
 .sat-reports-table .mdc-data-table__table {
-  min-width: 720px;
+  min-width: 1240px;
 }
 
 .sat-reports-table .sat-reports-data-table {
   table-layout: fixed;
 }
 
-.sat-reports-table .mat-column-nome {
-  width: 42%;
+.sat-reports-table .mat-column-eventId {
+  width: 12%;
 }
 
-.sat-reports-table .mat-column-categoria {
+.sat-reports-table .mat-column-tipoEvento {
+  width: 9%;
+}
+
+.sat-reports-table .mat-column-astronauta {
+  width: 13%;
+}
+
+.sat-reports-table .mat-column-itemNome {
+  width: 20%;
+}
+
+.sat-reports-table .mat-column-quantidade {
+  width: 8%;
+}
+
+.sat-reports-table .mat-column-statusAplicacao {
+  width: 11%;
+}
+
+.sat-reports-table .mat-column-motivo {
   width: 19%;
 }
 
-.sat-reports-table .mat-column-atualizadoEm {
-  width: 22%;
-}
-
-.sat-reports-table .mat-column-status {
-  width: 17%;
+.sat-reports-table .mat-column-acoes {
+  width: 8%;
 }
 
 .sat-reports-table .mdc-data-table__header-cell {

@@ -18,9 +18,9 @@ export class DashboardLayoutComponent {
 
   readonly user$ = this.authService.user$;
   readonly links: readonly DashboardLink[] = [
-    { label: 'Visão geral', path: 'overview' },
-    { label: 'Relatórios', path: 'reports' },
-    { label: 'Configurações', path: 'settings' }
+    { label: 'Estoque', path: 'estoque' },
+    { label: 'Atividades', path: 'atividades' },
+    { label: 'Configurações', path: 'configuracoes' }
   ];
 
   isSidebarOpen = false;
@@ -59,13 +59,13 @@ export class DashboardLayoutComponent {
   goToSettings(): void {
     this.closeUserMenu();
     this.closeSidebar();
-    this.router.navigateByUrl('/dashboard/settings');
+    this.router.navigateByUrl('/dashboard/configuracoes');
   }
 
-  goToReports(): void {
+  goToActivities(): void {
     this.closeUserMenu();
     this.closeSidebar();
-    this.router.navigateByUrl('/dashboard/reports');
+    this.router.navigateByUrl('/dashboard/atividades');
   }
 
   logout(): void {
