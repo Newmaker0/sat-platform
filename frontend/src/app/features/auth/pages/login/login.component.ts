@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
+import { defineSatOrbitalSceneElement } from '../../web-components/sat-orbital-scene.element';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +16,9 @@ export class LoginComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router
-  ) {}
+  ) {
+    defineSatOrbitalSceneElement();
+  }
 
   onSubmit(): void {
     const didLogin = this.authService.login(this.username, this.password);
