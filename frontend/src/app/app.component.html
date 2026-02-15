@@ -1,1 +1,3 @@
-<router-outlet></router-outlet>
+<div class="sat-app-route-shell" [@appRouteTransition]="prepareRoute(primaryOutlet)">
+  <router-outlet #primaryOutlet="outlet"></router-outlet>
+</div>

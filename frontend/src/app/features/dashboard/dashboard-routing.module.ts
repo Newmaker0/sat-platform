@@ -13,9 +13,9 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'estoque' },
-      { path: 'estoque', component: OverviewComponent },
-      { path: 'atividades', component: ReportsComponent },
-      { path: 'configuracoes', component: SettingsComponent },
+      { path: 'estoque', component: OverviewComponent, data: { animation: 'estoque' } },
+      { path: 'atividades', component: ReportsComponent, data: { animation: 'atividades' } },
+      { path: 'configuracoes', component: SettingsComponent, data: { animation: 'configuracoes' } },
       { path: 'overview', pathMatch: 'full', redirectTo: 'estoque' },
       { path: 'reports', pathMatch: 'full', redirectTo: 'atividades' },
       { path: 'settings', pathMatch: 'full', redirectTo: 'configuracoes' }

@@ -154,7 +154,12 @@
     </aside>
 
     <main class="w-full p-4 sm:p-6 md:p-8">
-      <router-outlet></router-outlet>
+      <div
+        class="relative block min-h-[26rem] overflow-hidden"
+        [@dashboardRouteTransition]="prepareRoute(dashboardOutlet)"
+      >
+        <router-outlet #dashboardOutlet="outlet"></router-outlet>
+      </div>
     </main>
   </div>
 </div>

@@ -1,3 +1,10 @@
 :host {
   display: block;
 }
+
+.sat-app-route-shell {
+  position: relative;
+  display: block;
+  min-height: 100dvh;
+  overflow: hidden;
+}
