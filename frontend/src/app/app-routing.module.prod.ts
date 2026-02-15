@@ -7,10 +7,6 @@ const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.module').then((m) => m.AuthModule)
   },
   {
-    path: 'ui-kit',
-    loadChildren: () => import('./ui-kit/ui-kit.module').then((m) => m.UiKitModule)
-  },
-  {
     path: 'dashboard',
     loadChildren: () =>
       import('./features/dashboard/dashboard.module').then((m) => m.DashboardModule)

@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
-import { dashboardRouteTransition } from '../../../../shared/animations/route-transition.animation';
 
 interface DashboardLink {
   readonly label: string;
@@ -12,8 +11,7 @@ interface DashboardLink {
 @Component({
   selector: 'app-dashboard-layout',
   templateUrl: './dashboard-layout.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [dashboardRouteTransition]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardLayoutComponent {
   @ViewChild(MatMenuTrigger) userMenuTrigger?: MatMenuTrigger;
@@ -44,18 +42,6 @@ export class DashboardLayoutComponent {
 
   trackByPath(_: number, link: DashboardLink): string {
     return link.path;
-  }
-
-  prepareRoute(outlet: RouterOutlet): string {
-    if (!outlet || !outlet.isActivated) {
-      return 'dashboard';
-    }
-
-    return (
-      outlet?.activatedRouteData?.['animation'] ??
-      outlet?.activatedRoute?.routeConfig?.path ??
-      'dashboard'
-    );
   }
 
   onUserMenuOpened(): void {

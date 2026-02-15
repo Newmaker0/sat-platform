@@ -28,6 +28,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/app-routing.module.ts",
+                  "with": "src/app/app-routing.module.prod.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",

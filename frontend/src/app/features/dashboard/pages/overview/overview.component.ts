@@ -1,38 +1,58 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { take } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { AdminInventoryService, InventorySummary } from '../../data-access/admin-inventory.service';
 import { DashboardLabelsService } from '../../data-access/dashboard-labels.service';
 import { ApplicationStatus, ConsumptionActivity } from '../../models/consumption-activity.model';
 import { StockItem } from '../../models/stock-item.model';
+import {
+  AsyncStateWithEmpty,
+  toAsyncState,
+  withEmptyState
+} from '../../../../shared/async/async-state';
+
+type OverviewState = AsyncStateWithEmpty<OverviewData>;
+
+interface OverviewData {
+  readonly summary: InventorySummary;
+  readonly stockItems: readonly StockItem[];
+  readonly lowStockItems: readonly StockItem[];
+  readonly recentActivities: readonly ConsumptionActivity[];
+  readonly openExceptions: readonly ConsumptionActivity[];
+}
 
 @Component({
   selector: 'app-overview',
   templateUrl: './overview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OverviewComponent implements OnInit {
-  summary: InventorySummary = {
+export class OverviewComponent {
+  readonly metricSkeletons = [1, 2, 3, 4];
+  readonly listSkeletons = [1, 2, 3, 4, 5, 6];
+
+  private readonly emptySummary: InventorySummary = {
     itensMonitorados: 0,
     itensCriticos: 0,
     excecoesOperacionais: 0,
     ajustesUltimas24h: 0
   };
-  stockItems: readonly StockItem[] = [];
-  lowStockItems: readonly StockItem[] = [];
-  recentActivities: readonly ConsumptionActivity[] = [];
-  openExceptions: readonly ConsumptionActivity[] = [];
-  isLoading = true;
-  errorMessage = '';
+  private readonly reload$ = new Subject<void>();
+
+  readonly state$: Observable<OverviewState> = this.reload$.pipe(
+    startWith(void 0),
+    switchMap(() =>
+      this.adminInventoryService.getDashboardSnapshot().pipe(
+        toAsyncState<OverviewData>(),
+        withEmptyState((snapshot) => snapshot.stockItems.length === 0)
+      )
+    ),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   constructor(
     private readonly adminInventoryService: AdminInventoryService,
-    private readonly dashboardLabelsService: DashboardLabelsService,
-    private readonly changeDetectorRef: ChangeDetectorRef
+    private readonly dashboardLabelsService: DashboardLabelsService
   ) {}
-
-  ngOnInit(): void {
-    this.loadSnapshot();
-  }
 
   trackByStockItemId(_: number, item: StockItem): string {
     return item.id;
@@ -40,6 +60,26 @@ export class OverviewComponent implements OnInit {
 
   trackByActivityEventId(_: number, activity: ConsumptionActivity): string {
     return activity.eventId;
+  }
+
+  retryLoad(): void {
+    this.reload$.next();
+  }
+
+  getSummary(state: OverviewState): InventorySummary {
+    return state.status === 'success' ? state.data.summary : this.emptySummary;
+  }
+
+  getStockItems(state: OverviewState): readonly StockItem[] {
+    return state.status === 'success' ? state.data.stockItems : [];
+  }
+
+  getRecentActivities(state: OverviewState): readonly ConsumptionActivity[] {
+    return state.status === 'success' ? state.data.recentActivities : [];
+  }
+
+  getOpenExceptions(state: OverviewState): readonly ConsumptionActivity[] {
+    return state.status === 'success' ? state.data.openExceptions : [];
   }
 
   getStockBadgeClasses(item: StockItem): string {
@@ -66,34 +106,5 @@ export class OverviewComponent implements OnInit {
 
   getEventTypeLabel(type: ConsumptionActivity['tipoEvento']): string {
     return this.dashboardLabelsService.getEventTypeLabel(type);
-  }
-
-  private loadSnapshot(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.adminInventoryService
-      .getDashboardSnapshot()
-      .pipe(take(1))
-      .subscribe({
-        next: (snapshot) => {
-          this.summary = snapshot.summary;
-          this.stockItems = snapshot.stockItems;
-          this.lowStockItems = snapshot.lowStockItems;
-          this.recentActivities = snapshot.recentActivities;
-          this.openExceptions = snapshot.openExceptions;
-          this.isLoading = false;
-          this.changeDetectorRef.markForCheck();
-        },
-        error: () => {
-          this.stockItems = [];
-          this.lowStockItems = [];
-          this.recentActivities = [];
-          this.openExceptions = [];
-          this.isLoading = false;
-          this.errorMessage = 'Não foi possível carregar o estoque no backend.';
-          this.changeDetectorRef.markForCheck();
-        }
-      });
   }
 }

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { take } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { AdminInventoryService } from '../../data-access/admin-inventory.service';
 import { DashboardLabelsService } from '../../data-access/dashboard-labels.service';
 import {
@@ -9,8 +10,14 @@ import {
   EventType,
   NonAppliedReason
 } from '../../models/consumption-activity.model';
+import {
+  AsyncStateWithEmpty,
+  toAsyncState,
+  withEmptyState
+} from '../../../../shared/async/async-state';
 
 type ActivityFilter = 'TODOS' | 'APLICADOS' | 'EXCECOES' | 'AJUSTES';
+type ReportsState = AsyncStateWithEmpty<readonly ConsumptionActivity[]>;
 
 interface FilterOption {
   readonly value: ActivityFilter;
@@ -22,7 +29,7 @@ interface FilterOption {
   templateUrl: './reports.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReportsComponent implements OnInit {
+export class ReportsComponent {
   readonly displayedColumns: string[] = [
     'eventId',
     'tipoEvento',
@@ -41,48 +48,59 @@ export class ReportsComponent implements OnInit {
     { value: 'AJUSTES', label: 'Ajustes' }
   ];
 
-  activities: readonly ConsumptionActivity[] = [];
+  private readonly reload$ = new Subject<void>();
+
+  readonly state$: Observable<ReportsState> = this.reload$.pipe(
+    startWith(void 0),
+    switchMap(() =>
+      this.adminInventoryService.getActivities().pipe(
+        toAsyncState<readonly ConsumptionActivity[]>(),
+        withEmptyState((items) => items.length === 0)
+      )
+    ),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   pageSize = this.pageSizeOptions[0];
   pageIndex = 0;
   activeFilter: ActivityFilter = 'TODOS';
   actionFeedback: string | null = null;
-  isLoading = true;
-  errorMessage = '';
 
   constructor(
     private readonly adminInventoryService: AdminInventoryService,
-    private readonly dashboardLabelsService: DashboardLabelsService,
-    private readonly changeDetectorRef: ChangeDetectorRef
+    private readonly dashboardLabelsService: DashboardLabelsService
   ) {}
 
-  ngOnInit(): void {
-    this.loadActivities();
+  getActivities(state: ReportsState): readonly ConsumptionActivity[] {
+    return state.status === 'success' ? state.data : [];
   }
 
-  get totalActivities(): number {
-    return this.filteredActivities.length;
-  }
-
-  get filteredActivities(): readonly ConsumptionActivity[] {
+  getFilteredActivities(
+    activities: readonly ConsumptionActivity[]
+  ): readonly ConsumptionActivity[] {
     if (this.activeFilter === 'APLICADOS') {
-      return this.activities.filter((activity) => activity.statusAplicacao === 'APLICADO');
+      return activities.filter((activity) => activity.statusAplicacao === 'APLICADO');
     }
 
     if (this.activeFilter === 'EXCECOES') {
-      return this.activities.filter((activity) => activity.statusAplicacao === 'NAO_APLICADO');
+      return activities.filter((activity) => activity.statusAplicacao === 'NAO_APLICADO');
     }
 
     if (this.activeFilter === 'AJUSTES') {
-      return this.activities.filter((activity) => activity.tipoEvento === 'AJUSTE');
+      return activities.filter((activity) => activity.tipoEvento === 'AJUSTE');
     }
 
-    return this.activities;
+    return activities;
   }
 
-  get pagedActivities(): readonly ConsumptionActivity[] {
+  getPagedActivities(activities: readonly ConsumptionActivity[]): readonly ConsumptionActivity[] {
+    const filtered = this.getFilteredActivities(activities);
     const start = this.pageIndex * this.pageSize;
-    return this.filteredActivities.slice(start, start + this.pageSize);
+    return filtered.slice(start, start + this.pageSize);
+  }
+
+  getTotalActivities(activities: readonly ConsumptionActivity[]): number {
+    return this.getFilteredActivities(activities).length;
   }
 
   onPageChange(event: PageEvent): void {
@@ -112,6 +130,10 @@ export class ReportsComponent implements OnInit {
 
   clearActionFeedback(): void {
     this.actionFeedback = null;
+  }
+
+  retryLoad(): void {
+    this.reload$.next();
   }
 
   trackByActivityId(_: number, row: ConsumptionActivity): string {
@@ -156,29 +178,5 @@ export class ReportsComponent implements OnInit {
     }
 
     return 'Registrar ajuste';
-  }
-
-  private loadActivities(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.adminInventoryService
-      .getActivities()
-      .pipe(take(1))
-      .subscribe({
-        next: (activities) => {
-          this.activities = activities;
-          this.pageIndex = 0;
-          this.isLoading = false;
-          this.changeDetectorRef.markForCheck();
-        },
-        error: () => {
-          this.activities = [];
-          this.pageIndex = 0;
-          this.isLoading = false;
-          this.errorMessage = 'Não foi possível carregar atividades do backend.';
-          this.changeDetectorRef.markForCheck();
-        }
-      });
   }
 }

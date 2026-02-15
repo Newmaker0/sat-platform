@@ -4,188 +4,386 @@
     subtitle="Visão operacional do inventário, exceções de sincronização e ajustes aplicados."
   ></app-page-header>
 
-  <article
-    *ngIf="errorMessage"
-    class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700"
-  >
-    {{ errorMessage }}
-  </article>
-
-  <article
-    *ngIf="isLoading && !errorMessage"
-    class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600"
-  >
-    Carregando dados do inventário...
-  </article>
-
-  <section class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-    <app-metric-card
-      label="Itens monitorados"
-      [value]="summary.itensMonitorados.toString()"
-      caption="Peças ativas no inventário central"
-      captionClass="text-slate-500"
-    ></app-metric-card>
-
-    <app-metric-card
-      label="Estoque crítico"
-      [value]="summary.itensCriticos.toString()"
-      caption="Itens abaixo do limite mínimo"
-      captionClass="text-rose-600"
-    ></app-metric-card>
-
-    <app-metric-card
-      label="Exceções operacionais"
-      [value]="summary.excecoesOperacionais.toString()"
-      caption="Eventos não aplicados com motivo"
-      captionClass="text-amber-600"
-    ></app-metric-card>
-
-    <app-metric-card
-      label="Ajustes (24h)"
-      [value]="summary.ajustesUltimas24h.toString()"
-      caption="Compensações registradas pela operação"
-      captionClass="text-sky-600"
-    ></app-metric-card>
-  </section>
-
-  <section class="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-        <h2 class="sat-type-section-title">Inventário atual</h2>
-        <span class="sat-type-body-muted">{{ stockItems.length }} itens</span>
-      </header>
-
-      <div class="hidden overflow-x-auto md:block">
-        <table class="w-full text-left">
-          <thead class="border-b border-slate-200 bg-slate-50">
-            <tr>
-              <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Item
-              </th>
-              <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Local
-              </th>
-              <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Qtd.
-              </th>
-              <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200">
-            <tr *ngFor="let item of stockItems; trackBy: trackByStockItemId" class="align-middle">
-              <td class="px-5 py-3.5">
-                <p class="truncate text-[0.92rem] font-semibold text-slate-900">{{ item.nome }}</p>
-                <p class="sat-type-body-muted mt-0.5">{{ item.categoria }}</p>
-              </td>
-              <td class="px-5 py-3.5 text-[0.9rem] font-medium text-slate-700">
-                {{ item.localizacao }}
-              </td>
-              <td class="px-5 py-3.5 text-[0.92rem] font-semibold text-slate-900">
-                {{ item.quantidadeAtual }} {{ item.unidade }}
-              </td>
-              <td class="px-5 py-3.5">
-                <span
-                  class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
-                  [ngClass]="getStockBadgeClasses(item)"
-                >
-                  {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="divide-y divide-slate-200 p-2 md:hidden">
-        <article *ngFor="let item of stockItems; trackBy: trackByStockItemId" class="px-2 py-3">
-          <div class="flex items-start justify-between gap-3">
-            <h3 class="text-[0.95rem] font-semibold leading-6 text-slate-900">{{ item.nome }}</h3>
-            <span
-              class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
-              [ngClass]="getStockBadgeClasses(item)"
-            >
-              {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
-            </span>
+  <ng-container *ngIf="state$ | async as state">
+    <section class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <ng-container *ngIf="state.status === 'loading'; else metricsReady">
+        <article
+          *ngFor="let metric of metricSkeletons"
+          class="min-h-[8.2rem] rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div class="animate-pulse">
+            <div class="h-3.5 w-24 rounded bg-slate-200"></div>
+            <div class="mt-3 h-8 w-16 rounded bg-slate-200"></div>
+            <div class="mt-4 h-3 w-40 rounded bg-slate-200"></div>
           </div>
-          <dl class="mt-2 grid gap-1.5 text-[0.9rem]">
-            <div class="flex items-center justify-between gap-4">
-              <dt class="sat-type-body-muted">Local</dt>
-              <dd class="font-medium text-slate-800">{{ item.localizacao }}</dd>
-            </div>
-            <div class="flex items-center justify-between gap-4">
-              <dt class="sat-type-body-muted">Quantidade</dt>
-              <dd class="font-semibold text-slate-900">
-                {{ item.quantidadeAtual }} {{ item.unidade }}
-              </dd>
-            </div>
-          </dl>
         </article>
-      </div>
-    </article>
+      </ng-container>
 
-    <div class="grid gap-4">
-      <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="sat-type-section-title">Exceções abertas</h2>
-          <a
-            routerLink="/dashboard/atividades"
-            class="text-xs font-semibold text-slate-600 hover:text-slate-900"
-          >
-            Ver fila completa
-          </a>
+      <ng-template #metricsReady>
+        <app-metric-card
+          label="Itens monitorados"
+          [value]="state.status === 'error' ? '—' : getSummary(state).itensMonitorados.toString()"
+          caption="Peças ativas no inventário central"
+          [captionClass]="state.status === 'error' ? 'text-slate-500' : 'text-slate-500'"
+        ></app-metric-card>
+
+        <app-metric-card
+          label="Estoque crítico"
+          [value]="state.status === 'error' ? '—' : getSummary(state).itensCriticos.toString()"
+          [caption]="
+            state.status === 'error'
+              ? 'Dados indisponíveis no momento'
+              : 'Itens abaixo do limite mínimo'
+          "
+          [captionClass]="state.status === 'error' ? 'text-slate-500' : 'text-rose-600'"
+        ></app-metric-card>
+
+        <app-metric-card
+          label="Exceções operacionais"
+          [value]="
+            state.status === 'error' ? '—' : getSummary(state).excecoesOperacionais.toString()
+          "
+          [caption]="
+            state.status === 'error'
+              ? 'Dados indisponíveis no momento'
+              : 'Eventos não aplicados com motivo'
+          "
+          [captionClass]="state.status === 'error' ? 'text-slate-500' : 'text-amber-600'"
+        ></app-metric-card>
+
+        <app-metric-card
+          label="Ajustes (24h)"
+          [value]="state.status === 'error' ? '—' : getSummary(state).ajustesUltimas24h.toString()"
+          [caption]="
+            state.status === 'error'
+              ? 'Dados indisponíveis no momento'
+              : 'Compensações registradas pela operação'
+          "
+          [captionClass]="state.status === 'error' ? 'text-slate-500' : 'text-sky-600'"
+        ></app-metric-card>
+      </ng-template>
+    </section>
+
+    <section class="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+      <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 class="sat-type-section-title">Inventário atual</h2>
+          <span class="sat-type-body-muted">
+            {{ state.status === 'success' ? getStockItems(state).length : '—' }} itens
+          </span>
+        </header>
+
+        <div class="hidden md:block">
+          <ng-container [ngSwitch]="state.status">
+            <div *ngSwitchCase="'loading'" class="min-h-[19rem] space-y-3 p-5">
+              <div *ngFor="let row of listSkeletons" class="animate-pulse">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="h-4 w-40 rounded bg-slate-200"></div>
+                  <div class="h-4 w-24 rounded bg-slate-200"></div>
+                  <div class="h-4 w-20 rounded bg-slate-200"></div>
+                  <div class="h-5 w-16 rounded-full bg-slate-200"></div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              *ngSwitchCase="'error'"
+              class="flex min-h-[19rem] flex-col items-center justify-center gap-3 p-6 text-center text-sm font-medium text-slate-600"
+            >
+              <p>Não foi possível carregar o inventário.</p>
+              <button
+                type="button"
+                class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                (click)="retryLoad()"
+              >
+                Tentar novamente
+              </button>
+            </div>
+
+            <div
+              *ngSwitchCase="'empty'"
+              class="flex min-h-[19rem] items-center justify-center p-6 text-center text-sm font-medium text-slate-600"
+            >
+              Nenhuma peça cadastrada no inventário.
+            </div>
+
+            <div *ngSwitchDefault class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead class="border-b border-slate-200 bg-slate-50">
+                  <tr>
+                    <th
+                      class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      Item
+                    </th>
+                    <th
+                      class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      Local
+                    </th>
+                    <th
+                      class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      Qtd.
+                    </th>
+                    <th
+                      class="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <tr
+                    *ngFor="let item of getStockItems(state); trackBy: trackByStockItemId"
+                    class="align-middle"
+                  >
+                    <td class="px-5 py-3.5">
+                      <p class="truncate text-[0.92rem] font-semibold text-slate-900">
+                        {{ item.nome }}
+                      </p>
+                      <p class="sat-type-body-muted mt-0.5">{{ item.categoria }}</p>
+                    </td>
+                    <td class="px-5 py-3.5 text-[0.9rem] font-medium text-slate-700">
+                      {{ item.localizacao }}
+                    </td>
+                    <td class="px-5 py-3.5 text-[0.92rem] font-semibold text-slate-900">
+                      {{ item.quantidadeAtual }} {{ item.unidade }}
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                        [ngClass]="getStockBadgeClasses(item)"
+                      >
+                        {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-container>
         </div>
 
-        <ul class="mt-3 space-y-2">
-          <li
-            *ngFor="let activity of openExceptions | slice: 0 : 3; trackBy: trackByActivityEventId"
-            class="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2"
-          >
-            <p class="text-sm font-semibold text-amber-800">{{ activity.itemNome }}</p>
-            <p class="text-xs font-medium text-amber-700">
-              {{ getReasonLabel(activity.motivoNaoAplicacao) }}
-            </p>
-            <p class="mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-amber-700">
-              {{ activity.eventId }}
-            </p>
-          </li>
-        </ul>
+        <div class="p-2 md:hidden">
+          <ng-container [ngSwitch]="state.status">
+            <div *ngSwitchCase="'loading'" class="min-h-[19rem] space-y-2">
+              <article
+                *ngFor="let row of listSkeletons"
+                class="rounded-lg border border-slate-200 px-3 py-3"
+              >
+                <div class="animate-pulse space-y-2">
+                  <div class="h-4 w-40 rounded bg-slate-200"></div>
+                  <div class="h-3.5 w-28 rounded bg-slate-200"></div>
+                  <div class="h-3.5 w-24 rounded bg-slate-200"></div>
+                </div>
+              </article>
+            </div>
+
+            <div
+              *ngSwitchCase="'error'"
+              class="flex min-h-[19rem] flex-col items-center justify-center gap-3 p-6 text-center text-sm font-medium text-slate-600"
+            >
+              <p>Não foi possível carregar o inventário.</p>
+              <button
+                type="button"
+                class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                (click)="retryLoad()"
+              >
+                Tentar novamente
+              </button>
+            </div>
+
+            <div
+              *ngSwitchCase="'empty'"
+              class="flex min-h-[19rem] items-center justify-center p-6 text-center text-sm font-medium text-slate-600"
+            >
+              Nenhuma peça cadastrada no inventário.
+            </div>
+
+            <div *ngSwitchDefault class="divide-y divide-slate-200">
+              <article
+                *ngFor="let item of getStockItems(state); trackBy: trackByStockItemId"
+                class="px-2 py-3"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="text-[0.95rem] font-semibold leading-6 text-slate-900">
+                    {{ item.nome }}
+                  </h3>
+                  <span
+                    class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                    [ngClass]="getStockBadgeClasses(item)"
+                  >
+                    {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
+                  </span>
+                </div>
+                <dl class="mt-2 grid gap-1.5 text-[0.9rem]">
+                  <div class="flex items-center justify-between gap-4">
+                    <dt class="sat-type-body-muted">Local</dt>
+                    <dd class="font-medium text-slate-800">{{ item.localizacao }}</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-4">
+                    <dt class="sat-type-body-muted">Quantidade</dt>
+                    <dd class="font-semibold text-slate-900">
+                      {{ item.quantidadeAtual }} {{ item.unidade }}
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+            </div>
+          </ng-container>
+        </div>
       </article>
 
-      <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 class="sat-type-section-title">Eventos recentes</h2>
-        <ul class="mt-3 space-y-2">
-          <li
-            *ngFor="let activity of recentActivities; trackBy: trackByActivityEventId"
-            class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <p class="text-sm font-semibold text-slate-800">{{ activity.itemNome }}</p>
-              <span class="text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500">
-                {{ getEventTypeLabel(activity.tipoEvento) }}
-              </span>
-            </div>
-            <p class="mt-1 text-xs font-medium text-slate-600">
-              {{ activity.astronauta }} • {{ activity.registradoEm }}
-            </p>
-            <div class="mt-2 flex flex-wrap items-center gap-1.5">
-              <span
-                class="inline-flex rounded-full px-2 py-0.5 text-[0.68rem] font-semibold"
-                [ngClass]="getApplicationStatusClasses(activity.statusAplicacao)"
+      <div class="grid gap-4">
+        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="sat-type-section-title">Exceções abertas</h2>
+            <a
+              routerLink="/dashboard/atividades"
+              class="text-xs font-semibold text-slate-600 hover:text-slate-900"
+            >
+              Ver fila completa
+            </a>
+          </div>
+
+          <ng-container [ngSwitch]="state.status">
+            <ul *ngSwitchCase="'loading'" class="mt-3 min-h-[9.5rem] space-y-2">
+              <li
+                *ngFor="let row of [1, 2, 3]"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 animate-pulse"
               >
-                {{ getApplicationStatusLabel(activity.statusAplicacao) }}
-              </span>
-              <span
-                *ngIf="activity.statusAplicacao === 'NAO_APLICADO'"
-                class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-[0.68rem] font-semibold text-rose-700"
-              >
-                {{ getReasonLabel(activity.motivoNaoAplicacao) }}
-              </span>
+                <div class="h-3.5 w-28 rounded bg-slate-200"></div>
+                <div class="mt-2 h-3.5 w-40 rounded bg-slate-200"></div>
+                <div class="mt-2 h-3 w-20 rounded bg-slate-200"></div>
+              </li>
+            </ul>
+
+            <div
+              *ngSwitchCase="'error'"
+              class="mt-3 flex min-h-[9.5rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+            >
+              Exceções indisponíveis.
             </div>
-          </li>
-        </ul>
-      </article>
-    </div>
-  </section>
+
+            <div
+              *ngSwitchCase="'empty'"
+              class="mt-3 flex min-h-[9.5rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+            >
+              Nenhuma exceção aberta.
+            </div>
+
+            <ul *ngSwitchDefault class="mt-3 min-h-[9.5rem] space-y-2">
+              <ng-container *ngIf="getOpenExceptions(state).length > 0; else emptyOpenExceptions">
+                <li
+                  *ngFor="
+                    let activity of getOpenExceptions(state) | slice: 0 : 3;
+                    trackBy: trackByActivityEventId
+                  "
+                  class="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2"
+                >
+                  <p class="text-sm font-semibold text-amber-800">{{ activity.itemNome }}</p>
+                  <p class="text-xs font-medium text-amber-700">
+                    {{ getReasonLabel(activity.motivoNaoAplicacao) }}
+                  </p>
+                  <p
+                    class="mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-amber-700"
+                  >
+                    {{ activity.eventId }}
+                  </p>
+                </li>
+              </ng-container>
+
+              <ng-template #emptyOpenExceptions>
+                <li
+                  class="flex min-h-[9.5rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+                >
+                  Nenhuma exceção aberta.
+                </li>
+              </ng-template>
+            </ul>
+          </ng-container>
+        </article>
+
+        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 class="sat-type-section-title">Eventos recentes</h2>
+
+          <ng-container [ngSwitch]="state.status">
+            <ul *ngSwitchCase="'loading'" class="mt-3 min-h-[11rem] space-y-2">
+              <li
+                *ngFor="let row of [1, 2, 3, 4]"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 animate-pulse"
+              >
+                <div class="h-3.5 w-32 rounded bg-slate-200"></div>
+                <div class="mt-2 h-3.5 w-40 rounded bg-slate-200"></div>
+                <div class="mt-2 h-4 w-20 rounded-full bg-slate-200"></div>
+              </li>
+            </ul>
+
+            <div
+              *ngSwitchCase="'error'"
+              class="mt-3 flex min-h-[11rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+            >
+              Eventos indisponíveis.
+            </div>
+
+            <div
+              *ngSwitchCase="'empty'"
+              class="mt-3 flex min-h-[11rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+            >
+              Sem eventos recentes.
+            </div>
+
+            <ul *ngSwitchDefault class="mt-3 min-h-[11rem] space-y-2">
+              <ng-container
+                *ngIf="getRecentActivities(state).length > 0; else emptyRecentActivities"
+              >
+                <li
+                  *ngFor="
+                    let activity of getRecentActivities(state);
+                    trackBy: trackByActivityEventId
+                  "
+                  class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-sm font-semibold text-slate-800">{{ activity.itemNome }}</p>
+                    <span
+                      class="text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      {{ getEventTypeLabel(activity.tipoEvento) }}
+                    </span>
+                  </div>
+                  <p class="mt-1 text-xs font-medium text-slate-600">
+                    {{ activity.astronauta }} • {{ activity.registradoEm }}
+                  </p>
+                  <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span
+                      class="inline-flex rounded-full px-2 py-0.5 text-[0.68rem] font-semibold"
+                      [ngClass]="getApplicationStatusClasses(activity.statusAplicacao)"
+                    >
+                      {{ getApplicationStatusLabel(activity.statusAplicacao) }}
+                    </span>
+                    <span
+                      *ngIf="activity.statusAplicacao === 'NAO_APLICADO'"
+                      class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-[0.68rem] font-semibold text-rose-700"
+                    >
+                      {{ getReasonLabel(activity.motivoNaoAplicacao) }}
+                    </span>
+                  </div>
+                </li>
+              </ng-container>
+
+              <ng-template #emptyRecentActivities>
+                <li
+                  class="flex min-h-[11rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-medium text-slate-600"
+                >
+                  Sem eventos recentes.
+                </li>
+              </ng-template>
+            </ul>
+          </ng-container>
+        </article>
+      </div>
+    </section>
+  </ng-container>
 </section>

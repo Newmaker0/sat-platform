@@ -1,0 +1,76 @@
+<div class="space-y-4">
+  <header class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h1 class="text-2xl font-semibold text-slate-900">Cards</h1>
+    <p class="mt-2 text-sm text-slate-600">Blocos visuais base usados nas páginas da dashboard.</p>
+
+    <div class="mt-4 flex gap-2">
+      <button
+        type="button"
+        *ngFor="let densityItem of densities"
+        (click)="setDensity(densityItem)"
+        class="rounded-md border px-3 py-1.5 text-xs font-semibold transition"
+        [ngClass]="
+          density === densityItem
+            ? 'border-slate-900 bg-slate-900 text-white'
+            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+        "
+      >
+        {{ densityItem }}
+      </button>
+    </div>
+  </header>
+
+  <section class="grid gap-4 lg:grid-cols-3">
+    <article
+      class="rounded-xl border border-slate-200 bg-white shadow-sm"
+      [ngClass]="getCardPadding()"
+    >
+      <p class="text-xs font-medium text-slate-500">Itens monitorados</p>
+      <p class="mt-2 text-4xl font-semibold text-slate-900">14</p>
+      <p class="mt-3 text-xs font-semibold text-slate-500">Peças ativas no inventário central</p>
+    </article>
+
+    <article
+      class="rounded-xl border border-slate-200 bg-white shadow-sm"
+      [ngClass]="getCardPadding()"
+    >
+      <p class="text-xs font-medium text-slate-500">Exceções operacionais</p>
+      <p class="mt-2 text-4xl font-semibold text-slate-900">2</p>
+      <p class="mt-3 text-xs font-semibold text-amber-600">Eventos não aplicados com motivo</p>
+    </article>
+
+    <article
+      class="rounded-xl border border-slate-200 bg-white shadow-sm"
+      [ngClass]="getCardPadding()"
+    >
+      <p class="text-xs font-medium text-slate-500">Ajustes (24h)</p>
+      <p class="mt-2 text-4xl font-semibold text-slate-900">5</p>
+      <p class="mt-3 text-xs font-semibold text-sky-600">Compensações administrativas</p>
+    </article>
+  </section>
+
+  <section
+    class="rounded-xl border border-slate-200 bg-white shadow-sm"
+    [ngClass]="getCardPadding()"
+  >
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">Card de conteúdo</h2>
+      <span class="text-xs font-medium text-slate-500">5 itens</span>
+    </div>
+
+    <div class="mt-4 grid" [ngClass]="getGap()">
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p class="text-sm font-semibold text-slate-900">Válvula de oxigênio</p>
+        <p class="mt-1 text-sm text-slate-600">Habitat</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p class="text-sm font-semibold text-slate-900">Sensor térmico</p>
+        <p class="mt-1 text-sm text-slate-600">Módulo técnico</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p class="text-sm font-semibold text-slate-900">Filtro de ar</p>
+        <p class="mt-1 text-sm text-slate-600">Suporte de vida</p>
+      </div>
+    </div>
+  </section>
+</div>

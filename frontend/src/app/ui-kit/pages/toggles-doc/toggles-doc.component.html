@@ -1,0 +1,88 @@
+<div class="space-y-4">
+  <header class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h1 class="text-2xl font-semibold text-slate-900">Toggles</h1>
+    <p class="mt-2 text-sm text-slate-600">
+      Padrão de switch usado em configurações, com variação de tamanho e disabled.
+    </p>
+  </header>
+
+  <section class="grid gap-4 xl:grid-cols-[1.1fr_1fr]">
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-base font-semibold text-slate-900">Preview</h2>
+
+      <div class="mt-4 space-y-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Permitir ajuste manual</p>
+            <p class="text-sm text-slate-600">Habilita compensações administrativas.</p>
+          </div>
+          <button
+            type="button"
+            [attr.aria-pressed]="enabled"
+            class="relative rounded-full border-0 p-0.5 transition"
+            [ngClass]="getTrackClasses(enabled)"
+            (click)="toggleEnabled()"
+          >
+            <span
+              class="absolute left-0.5 top-0.5 rounded-full bg-white shadow transition-transform"
+              [ngClass]="getThumbClasses(enabled)"
+            ></span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Exigir observação em exceções</p>
+            <p class="text-sm text-slate-600">Campo obrigatório em eventos não aplicados.</p>
+          </div>
+          <button
+            type="button"
+            [attr.aria-pressed]="enabled"
+            [disabled]="disabled"
+            class="relative rounded-full border-0 p-0.5 transition"
+            [ngClass]="getTrackClasses(enabled)"
+            (click)="toggleEnabled()"
+          >
+            <span
+              class="absolute left-0.5 top-0.5 rounded-full bg-white shadow transition-transform"
+              [ngClass]="getThumbClasses(enabled)"
+            ></span>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-base font-semibold text-slate-900">Controles</h2>
+
+      <div class="mt-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tamanho</p>
+        <div class="mt-2 flex gap-2">
+          <button
+            type="button"
+            *ngFor="let size of sizes"
+            (click)="setSize(size)"
+            class="rounded-md border px-3 py-1.5 text-xs font-semibold transition"
+            [ngClass]="
+              selectedSize === size
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+            "
+          >
+            {{ size }}
+          </button>
+        </div>
+      </div>
+
+      <label class="mt-4 flex items-center gap-2 text-sm font-medium text-slate-700">
+        <input
+          type="checkbox"
+          class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+          [checked]="disabled"
+          (change)="toggleDisabled()"
+        />
+        Desabilitar preview secundário
+      </label>
+    </article>
+  </section>
+</div>
