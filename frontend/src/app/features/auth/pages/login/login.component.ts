@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnDestroy,
   OnInit
 } from '@angular/core';
@@ -12,6 +13,7 @@ import { AuthService } from '../../../../auth/auth.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent implements OnInit, OnDestroy {
@@ -20,9 +22,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   errorMessage = '';
   isSubmitting = false;
   shouldRenderOrbitalScene = false;
+  isMobileViewport = false;
+  isMobileLoginModalOpen = false;
+  isMobileLoginModalVisible = false;
 
   private sceneMountDelayId?: number;
+  private modalCloseTimeoutId?: ReturnType<typeof setTimeout>;
+  private modalOpenFrameId = 0;
   private isDestroyed = false;
+  private readonly modalExitAnimationMs = 240;
 
   constructor(
     private readonly authService: AuthService,
@@ -31,6 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.updateViewportMode();
     this.sceneMountDelayId = window.setTimeout(() => {
       this.mountOrbitalScene();
     }, 120);
@@ -42,6 +51,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.sceneMountDelayId) {
       window.clearTimeout(this.sceneMountDelayId);
       this.sceneMountDelayId = undefined;
+    }
+
+    if (this.modalCloseTimeoutId) {
+      clearTimeout(this.modalCloseTimeoutId);
+      this.modalCloseTimeoutId = undefined;
+    }
+
+    if (this.modalOpenFrameId) {
+      cancelAnimationFrame(this.modalOpenFrameId);
+      this.modalOpenFrameId = 0;
     }
   }
 
@@ -78,6 +97,54 @@ export class LoginComponent implements OnInit, OnDestroy {
       });
   }
 
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateViewportMode();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapePressed(): void {
+    this.closeMobileLoginModal();
+  }
+
+  openMobileLoginModal(): void {
+    if (this.modalCloseTimeoutId) {
+      clearTimeout(this.modalCloseTimeoutId);
+      this.modalCloseTimeoutId = undefined;
+    }
+
+    this.isMobileLoginModalVisible = true;
+    this.isMobileLoginModalOpen = false;
+    this.errorMessage = '';
+
+    this.modalOpenFrameId = requestAnimationFrame(() => {
+      this.modalOpenFrameId = 0;
+      if (this.isDestroyed || !this.isMobileLoginModalVisible) {
+        return;
+      }
+      this.isMobileLoginModalOpen = true;
+      this.changeDetectorRef.markForCheck();
+    });
+  }
+
+  closeMobileLoginModal(): void {
+    if (!this.isMobileLoginModalVisible) {
+      return;
+    }
+
+    this.isMobileLoginModalOpen = false;
+
+    if (this.modalCloseTimeoutId) {
+      clearTimeout(this.modalCloseTimeoutId);
+    }
+
+    this.modalCloseTimeoutId = setTimeout(() => {
+      this.modalCloseTimeoutId = undefined;
+      this.isMobileLoginModalVisible = false;
+      this.changeDetectorRef.markForCheck();
+    }, this.modalExitAnimationMs);
+  }
+
   private async mountOrbitalScene(): Promise<void> {
     try {
       const { defineSatOrbitalSceneElement } =
@@ -90,6 +157,18 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error('Falha ao carregar cena orbital:', error);
+    }
+  }
+
+  private updateViewportMode(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    this.isMobileViewport = window.innerWidth < 768;
+    if (!this.isMobileViewport) {
+      this.isMobileLoginModalOpen = false;
+      this.isMobileLoginModalVisible = false;
     }
   }
 }

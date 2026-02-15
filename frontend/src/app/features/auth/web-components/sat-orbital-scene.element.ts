@@ -134,6 +134,7 @@ class SatOrbitalSceneElement extends HTMLElement {
     const container = this.sceneContainer;
 
     const scene = new THREE.Scene();
+    const isPortraitViewport = container.clientHeight > container.clientWidth;
 
     const camera = new THREE.PerspectiveCamera(
       50,
@@ -141,7 +142,7 @@ class SatOrbitalSceneElement extends HTMLElement {
       0.1,
       120
     );
-    camera.position.set(0.22, 0.1, 9.4);
+    camera.position.set(isPortraitViewport ? 0 : 0.22, 0.1, 9.4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.reduceMotion ? 1 : 1.3));
