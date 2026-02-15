@@ -10,6 +10,7 @@ class SatOrbitalSceneElement extends HTMLElement {
   private sceneContainer?: HTMLDivElement;
 
   private animationId = 0;
+  private isRenderLoopActive = false;
   private resizeObserver?: ResizeObserver;
 
   private scene?: THREE.Scene;
@@ -19,7 +20,10 @@ class SatOrbitalSceneElement extends HTMLElement {
   private bloomPass?: UnrealBloomPass;
 
   private clock = new THREE.Clock();
+  private elapsedSeconds = 0;
   private reduceMotion = false;
+  private readonly reducedMotionFps = 18;
+  private lastReducedMotionFrameTime = 0;
 
   private planet?: THREE.Mesh;
   private globeDots?: THREE.Points;
@@ -74,16 +78,16 @@ class SatOrbitalSceneElement extends HTMLElement {
 
     this.initScene();
     this.observeResize();
-    this.renderLoop();
+    this.startRenderLoop();
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   disconnectedCallback(): void {
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-    }
+    this.stopRenderLoop();
 
     this.resizeObserver?.disconnect();
     window.removeEventListener('resize', this.updateViewport);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 
     this.clearSignals();
 
@@ -118,6 +122,8 @@ class SatOrbitalSceneElement extends HTMLElement {
     this.hasEmittedReady = false;
     this.ownedTextures.forEach((texture) => texture.dispose());
     this.ownedTextures = [];
+    this.elapsedSeconds = 0;
+    this.lastReducedMotionFrameTime = 0;
   }
 
   private initScene(): void {
@@ -138,7 +144,7 @@ class SatOrbitalSceneElement extends HTMLElement {
     camera.position.set(0.22, 0.1, 9.4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.3));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.reduceMotion ? 1 : 1.3));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setClearColor(0x020617, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -146,16 +152,21 @@ class SatOrbitalSceneElement extends HTMLElement {
     renderer.toneMappingExposure = 1.02;
     container.appendChild(renderer.domElement);
 
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
+    let composer: EffectComposer | undefined;
+    let bloomPass: UnrealBloomPass | undefined;
 
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.22,
-      0.9,
-      0.25
-    );
-    composer.addPass(bloomPass);
+    if (!this.reduceMotion) {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+
+      bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(container.clientWidth, container.clientHeight),
+        0.22,
+        0.9,
+        0.25
+      );
+      composer.addPass(bloomPass);
+    }
 
     this.scene = scene;
     this.camera = camera;
@@ -330,6 +341,9 @@ class SatOrbitalSceneElement extends HTMLElement {
     });
 
     this.globeDots = new THREE.Points(dotsGeometry, dotsMaterial);
+    if (this.planet) {
+      this.globeDots.rotation.copy(this.planet.rotation);
+    }
     this.scene.add(this.globeDots);
   }
 
@@ -477,7 +491,7 @@ class SatOrbitalSceneElement extends HTMLElement {
   }
 
   private readonly updateViewport = (): void => {
-    if (!this.sceneContainer || !this.camera || !this.renderer || !this.composer) {
+    if (!this.sceneContainer || !this.camera || !this.renderer) {
       return;
     }
 
@@ -488,19 +502,63 @@ class SatOrbitalSceneElement extends HTMLElement {
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
-    this.composer.setSize(width, height);
+    this.composer?.setSize(width, height);
     this.bloomPass?.setSize(width, height);
   };
 
-  private readonly renderLoop = (): void => {
-    this.animationId = requestAnimationFrame(this.renderLoop);
-
-    if (!this.scene || !this.camera || !this.renderer || !this.composer || !this.satellite) {
+  private readonly handleVisibilityChange = (): void => {
+    if (document.hidden) {
+      this.stopRenderLoop();
       return;
     }
 
-    const delta = this.clock.getDelta();
-    const elapsed = this.clock.elapsedTime;
+    this.startRenderLoop();
+  };
+
+  private startRenderLoop(): void {
+    if (this.isRenderLoopActive) {
+      return;
+    }
+
+    this.isRenderLoopActive = true;
+    this.clock.start();
+    this.animationId = requestAnimationFrame(this.renderLoop);
+  }
+
+  private stopRenderLoop(): void {
+    this.isRenderLoopActive = false;
+
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = 0;
+    }
+
+    this.clock.stop();
+  }
+
+  private readonly renderLoop = (timestamp: number): void => {
+    if (!this.isRenderLoopActive) {
+      return;
+    }
+
+    this.animationId = requestAnimationFrame(this.renderLoop);
+
+    if (!this.scene || !this.camera || !this.renderer || !this.satellite) {
+      return;
+    }
+
+    if (this.reduceMotion) {
+      const minFrameTime = 1000 / this.reducedMotionFps;
+      if (timestamp - this.lastReducedMotionFrameTime < minFrameTime) {
+        return;
+      }
+      this.lastReducedMotionFrameTime = timestamp;
+    }
+
+    const rawDelta = this.clock.getDelta();
+    const delta = Math.min(rawDelta, 0.05);
+    this.elapsedSeconds += delta;
+    const elapsed = this.elapsedSeconds;
 
     this.updateSatellite(elapsed);
 
@@ -519,11 +577,11 @@ class SatOrbitalSceneElement extends HTMLElement {
       this.updateSignals(delta);
     }
 
-    if (!this.reduceMotion && this.bloomPass) {
-      this.bloomPass.strength = 0.2;
+    if (this.composer) {
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
     }
-
-    this.composer.render();
 
     if (!this.hasEmittedReady) {
       this.hasEmittedReady = true;
