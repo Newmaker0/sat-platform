@@ -39,7 +39,7 @@
             type="text"
             autocomplete="username"
             required
-            placeholder="pedro.wilson"
+            placeholder="Pedro"
           />
         </div>
 
@@ -62,8 +62,11 @@
         <button
           class="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
           type="submit"
+          [disabled]="isSubmitting"
+          [class.cursor-not-allowed]="isSubmitting"
+          [class.opacity-70]="isSubmitting"
         >
-          Entrar
+          {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
         </button>
       </form>
     </div>

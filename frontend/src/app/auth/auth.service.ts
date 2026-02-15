@@ -1,63 +1,52 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-
-export interface AuthUser {
-  username: string;
-}
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { AuthApiService } from '../features/auth/data-access/auth-api.service';
+import { AuthSessionStore, AuthUser } from './auth-session.store';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly storageKey = 'sat-auth-user';
-  private readonly userSubject = new BehaviorSubject<AuthUser | null>(this.readStoredUser());
+  readonly user$ = this.authSessionStore.user$;
 
-  readonly user$ = this.userSubject.asObservable();
+  constructor(
+    private readonly authApiService: AuthApiService,
+    private readonly authSessionStore: AuthSessionStore
+  ) {}
 
   get user(): AuthUser | null {
-    return this.userSubject.value;
+    return this.authSessionStore.user;
   }
 
   get isAuthenticated(): boolean {
-    return !!this.user;
+    return this.authSessionStore.isAuthenticated;
   }
 
-  login(username: string, password: string): boolean {
+  login(username: string, password: string): Observable<boolean> {
     const cleanUsername = username.trim();
     const cleanPassword = password.trim();
 
     if (!cleanUsername || !cleanPassword) {
-      return false;
+      return of(false);
     }
 
-    const user: AuthUser = { username: cleanUsername };
-    localStorage.setItem(this.storageKey, JSON.stringify(user));
-    this.userSubject.next(user);
-    return true;
+    const authToken = btoa(`${cleanUsername}:${cleanPassword}`);
+
+    return this.authApiService.validateAdminCredentials(authToken).pipe(
+      map(() => {
+        this.authSessionStore.setUser({
+          username: cleanUsername,
+          role: 'ADMIN',
+          authToken
+        });
+        return true;
+      }),
+      catchError(() => of(false))
+    );
   }
 
   logout(): void {
-    localStorage.removeItem(this.storageKey);
-    this.userSubject.next(null);
-  }
-
-  private readStoredUser(): AuthUser | null {
-    const raw = localStorage.getItem(this.storageKey);
-
-    if (!raw) {
-      return null;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as AuthUser;
-      if (!parsed?.username) {
-        localStorage.removeItem(this.storageKey);
-        return null;
-      }
-      return parsed;
-    } catch {
-      localStorage.removeItem(this.storageKey);
-      return null;
-    }
+    this.authSessionStore.clear();
   }
 }

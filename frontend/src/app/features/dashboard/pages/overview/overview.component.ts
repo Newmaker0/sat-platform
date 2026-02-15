@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { DashboardMockDataService } from '../../data-access/dashboard-mock-data.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { take } from 'rxjs/operators';
+import { AdminInventoryService, InventorySummary } from '../../data-access/admin-inventory.service';
+import { DashboardLabelsService } from '../../data-access/dashboard-labels.service';
 import { ApplicationStatus, ConsumptionActivity } from '../../models/consumption-activity.model';
 import { StockItem } from '../../models/stock-item.model';
 
@@ -8,14 +10,29 @@ import { StockItem } from '../../models/stock-item.model';
   templateUrl: './overview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OverviewComponent {
-  readonly summary = this.dashboardData.getInventorySummary();
-  readonly stockItems = this.dashboardData.getStockItems();
-  readonly lowStockItems = this.dashboardData.getLowStockItems();
-  readonly recentActivities = this.dashboardData.getRecentActivities(4);
-  readonly openExceptions = this.dashboardData.getOpenExceptions();
+export class OverviewComponent implements OnInit {
+  summary: InventorySummary = {
+    itensMonitorados: 0,
+    itensCriticos: 0,
+    excecoesOperacionais: 0,
+    ajustesUltimas24h: 0
+  };
+  stockItems: readonly StockItem[] = [];
+  lowStockItems: readonly StockItem[] = [];
+  recentActivities: readonly ConsumptionActivity[] = [];
+  openExceptions: readonly ConsumptionActivity[] = [];
+  isLoading = true;
+  errorMessage = '';
 
-  constructor(private readonly dashboardData: DashboardMockDataService) {}
+  constructor(
+    private readonly adminInventoryService: AdminInventoryService,
+    private readonly dashboardLabelsService: DashboardLabelsService,
+    private readonly changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadSnapshot();
+  }
 
   trackByStockItemId(_: number, item: StockItem): string {
     return item.id;
@@ -32,7 +49,7 @@ export class OverviewComponent {
   }
 
   getApplicationStatusLabel(status: ApplicationStatus): string {
-    return this.dashboardData.getApplicationStatusLabel(status);
+    return this.dashboardLabelsService.getApplicationStatusLabel(status);
   }
 
   getApplicationStatusClasses(status: ApplicationStatus): string {
@@ -44,10 +61,39 @@ export class OverviewComponent {
   }
 
   getReasonLabel(reason?: ConsumptionActivity['motivoNaoAplicacao']): string {
-    return this.dashboardData.getReasonLabel(reason);
+    return this.dashboardLabelsService.getReasonLabel(reason);
   }
 
   getEventTypeLabel(type: ConsumptionActivity['tipoEvento']): string {
-    return this.dashboardData.getEventTypeLabel(type);
+    return this.dashboardLabelsService.getEventTypeLabel(type);
+  }
+
+  private loadSnapshot(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.adminInventoryService
+      .getDashboardSnapshot()
+      .pipe(take(1))
+      .subscribe({
+        next: (snapshot) => {
+          this.summary = snapshot.summary;
+          this.stockItems = snapshot.stockItems;
+          this.lowStockItems = snapshot.lowStockItems;
+          this.recentActivities = snapshot.recentActivities;
+          this.openExceptions = snapshot.openExceptions;
+          this.isLoading = false;
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.stockItems = [];
+          this.lowStockItems = [];
+          this.recentActivities = [];
+          this.openExceptions = [];
+          this.isLoading = false;
+          this.errorMessage = 'Não foi possível carregar o estoque no backend.';
+          this.changeDetectorRef.markForCheck();
+        }
+      });
   }
 }

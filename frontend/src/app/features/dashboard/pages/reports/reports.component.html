@@ -4,6 +4,20 @@
     subtitle="Consumos e ajustes com rastreabilidade de aplicação, motivos e ações corretivas."
   ></app-page-header>
 
+  <article
+    *ngIf="errorMessage"
+    class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700"
+  >
+    {{ errorMessage }}
+  </article>
+
+  <article
+    *ngIf="isLoading && !errorMessage"
+    class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600"
+  >
+    Carregando atividades...
+  </article>
+
   <div class="mt-4 flex flex-wrap gap-2">
     <button
       type="button"

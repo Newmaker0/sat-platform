@@ -6,6 +6,7 @@ import {
   OnInit
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { finalize, take } from 'rxjs/operators';
 import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
@@ -17,6 +18,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   username = '';
   password = '';
   errorMessage = '';
+  isSubmitting = false;
   shouldRenderOrbitalScene = false;
 
   private sceneMountDelayId?: number;
@@ -44,14 +46,36 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    const didLogin = this.authService.login(this.username, this.password);
-    if (!didLogin) {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    if (!this.username.trim() || !this.password.trim()) {
       this.errorMessage = 'Informe usuário e senha para continuar.';
       return;
     }
 
     this.errorMessage = '';
-    this.router.navigateByUrl('/dashboard');
+    this.isSubmitting = true;
+
+    this.authService
+      .login(this.username, this.password)
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.changeDetectorRef.markForCheck();
+        })
+      )
+      .subscribe((didLogin) => {
+        if (!didLogin) {
+          this.errorMessage = 'Credenciais inválidas ou sem acesso administrativo.';
+          return;
+        }
+
+        this.errorMessage = '';
+        this.router.navigateByUrl('/dashboard');
+      });
   }
 
   private async mountOrbitalScene(): Promise<void> {

@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { DashboardMockDataService } from '../../data-access/dashboard-mock-data.service';
+import { take } from 'rxjs/operators';
+import { AdminInventoryService } from '../../data-access/admin-inventory.service';
+import { DashboardLabelsService } from '../../data-access/dashboard-labels.service';
 import {
   ApplicationStatus,
   ConsumptionActivity,
@@ -20,7 +22,7 @@ interface FilterOption {
   templateUrl: './reports.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReportsComponent {
+export class ReportsComponent implements OnInit {
   readonly displayedColumns: string[] = [
     'eventId',
     'tipoEvento',
@@ -39,14 +41,24 @@ export class ReportsComponent {
     { value: 'AJUSTES', label: 'Ajustes' }
   ];
 
-  readonly activities = this.dashboardData.getActivities();
+  activities: readonly ConsumptionActivity[] = [];
 
   pageSize = this.pageSizeOptions[0];
   pageIndex = 0;
   activeFilter: ActivityFilter = 'TODOS';
   actionFeedback: string | null = null;
+  isLoading = true;
+  errorMessage = '';
 
-  constructor(private readonly dashboardData: DashboardMockDataService) {}
+  constructor(
+    private readonly adminInventoryService: AdminInventoryService,
+    private readonly dashboardLabelsService: DashboardLabelsService,
+    private readonly changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadActivities();
+  }
 
   get totalActivities(): number {
     return this.filteredActivities.length;
@@ -107,15 +119,15 @@ export class ReportsComponent {
   }
 
   getApplicationStatusLabel(status: ApplicationStatus): string {
-    return this.dashboardData.getApplicationStatusLabel(status);
+    return this.dashboardLabelsService.getApplicationStatusLabel(status);
   }
 
   getEventTypeLabel(type: EventType): string {
-    return this.dashboardData.getEventTypeLabel(type);
+    return this.dashboardLabelsService.getEventTypeLabel(type);
   }
 
   getReasonLabel(reason?: NonAppliedReason): string {
-    return this.dashboardData.getReasonLabel(reason);
+    return this.dashboardLabelsService.getReasonLabel(reason);
   }
 
   getApplicationStatusClasses(status: ApplicationStatus): string {
@@ -144,5 +156,29 @@ export class ReportsComponent {
     }
 
     return 'Registrar ajuste';
+  }
+
+  private loadActivities(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.adminInventoryService
+      .getActivities()
+      .pipe(take(1))
+      .subscribe({
+        next: (activities) => {
+          this.activities = activities;
+          this.pageIndex = 0;
+          this.isLoading = false;
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.activities = [];
+          this.pageIndex = 0;
+          this.isLoading = false;
+          this.errorMessage = 'Não foi possível carregar atividades do backend.';
+          this.changeDetectorRef.markForCheck();
+        }
+      });
   }
 }

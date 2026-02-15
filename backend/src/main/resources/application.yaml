@@ -1,6 +1,36 @@
 spring:
   application:
     name: sat-backend
+  main:
+    banner-mode: "off"
+  mvc:
+    servlet:
+      load-on-startup: 1
+  datasource:
+    url: jdbc:h2:mem:satdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
 
 server:
   max-http-request-header-size: 16KB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
