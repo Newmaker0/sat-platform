@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { Observable, Subject } from 'rxjs';
 import { shareReplay, startWith, switchMap } from 'rxjs/operators';
@@ -15,6 +15,8 @@ import {
   toAsyncState,
   withEmptyState
 } from '../../../../shared/async/async-state';
+import { ActionMenuItem } from '../../../../shared/ui/action-menu/action-menu.component';
+import { UiPillTone } from '../../../../shared/ui/status-pill/status-pill.component';
 
 type ActivityFilter = 'TODOS' | 'APLICADOS' | 'EXCECOES' | 'AJUSTES';
 type ReportsState = AsyncStateWithEmpty<readonly ConsumptionActivity[]>;
@@ -27,9 +29,10 @@ interface FilterOption {
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.component.html',
+  styleUrls: ['./reports.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReportsComponent {
+export class ReportsComponent implements OnInit {
   readonly displayedColumns: string[] = [
     'eventId',
     'tipoEvento',
@@ -40,7 +43,7 @@ export class ReportsComponent {
     'motivo',
     'acoes'
   ];
-  readonly pageSizeOptions: readonly number[] = [5, 10, 20];
+  readonly pageSizeOptions: readonly number[] = [5, 8, 10, 12, 15, 20];
   readonly filterOptions: readonly FilterOption[] = [
     { value: 'TODOS', label: 'Todos' },
     { value: 'EXCECOES', label: 'Exceções' },
@@ -65,11 +68,27 @@ export class ReportsComponent {
   pageIndex = 0;
   activeFilter: ActivityFilter = 'TODOS';
   actionFeedback: string | null = null;
+  desktopSkeletonRows: readonly number[] = [];
+  private autoPageSizeEnabled = true;
 
   constructor(
     private readonly adminInventoryService: AdminInventoryService,
     private readonly dashboardLabelsService: DashboardLabelsService
   ) {}
+
+  ngOnInit(): void {
+    this.configureDesktopPageSize();
+    this.syncDesktopSkeletonRows();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (!this.autoPageSizeEnabled) {
+      return;
+    }
+
+    this.configureDesktopPageSize();
+  }
 
   getActivities(state: ReportsState): readonly ConsumptionActivity[] {
     return state.status === 'success' ? state.data : [];
@@ -104,8 +123,14 @@ export class ReportsComponent {
   }
 
   onPageChange(event: PageEvent): void {
+    const previousPageSize = this.pageSize;
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;
+    this.syncDesktopSkeletonRows();
+
+    if (event.pageSize !== previousPageSize) {
+      this.autoPageSizeEnabled = false;
+    }
   }
 
   onFilterChange(filter: ActivityFilter): void {
@@ -126,6 +151,26 @@ export class ReportsComponent {
     }
 
     this.actionFeedback = `Fluxo mock: iniciar ajuste corretivo para ${event.eventId}.`;
+  }
+
+  onMenuAction(event: ConsumptionActivity, action: string): void {
+    if (action === 'PRIMARY') {
+      this.onAction(event);
+      return;
+    }
+
+    if (action === 'HISTORY') {
+      this.actionFeedback = `Fluxo mock: exibindo histórico do item ${event.itemNome}.`;
+      return;
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(event.eventId);
+      this.actionFeedback = `ID ${event.eventId} copiado para a área de transferência.`;
+      return;
+    }
+
+    this.actionFeedback = `Não foi possível copiar automaticamente. ID do evento: ${event.eventId}.`;
   }
 
   clearActionFeedback(): void {
@@ -152,20 +197,12 @@ export class ReportsComponent {
     return this.dashboardLabelsService.getReasonLabel(reason);
   }
 
-  getApplicationStatusClasses(status: ApplicationStatus): string {
-    if (status === 'APLICADO') {
-      return 'bg-emerald-100 text-emerald-700';
-    }
-
-    return 'bg-rose-100 text-rose-700';
+  getApplicationStatusTone(status: ApplicationStatus): UiPillTone {
+    return status === 'APLICADO' ? 'success' : 'danger';
   }
 
-  getEventTypeClasses(type: EventType): string {
-    if (type === 'AJUSTE') {
-      return 'bg-sky-100 text-sky-700';
-    }
-
-    return 'bg-slate-200 text-slate-700';
+  getEventTypeTone(type: EventType): UiPillTone {
+    return type === 'AJUSTE' ? 'info' : 'neutral';
   }
 
   getActionLabel(event: ConsumptionActivity): string {
@@ -178,5 +215,47 @@ export class ReportsComponent {
     }
 
     return 'Registrar ajuste';
+  }
+
+  getRowActionOptions(event: ConsumptionActivity): readonly ActionMenuItem[] {
+    return [
+      { id: 'PRIMARY', label: this.getActionLabel(event), icon: 'sparkles' },
+      { id: 'HISTORY', label: 'Ver histórico do item', icon: 'history' },
+      { id: 'COPY_EVENT_ID', label: 'Copiar ID do evento', icon: 'copy' }
+    ];
+  }
+
+  private configureDesktopPageSize(): void {
+    if (typeof window === 'undefined' || window.innerWidth < 768) {
+      this.pageSize = 5;
+      this.pageIndex = 0;
+      this.syncDesktopSkeletonRows();
+      return;
+    }
+
+    const viewportHeight = window.innerHeight;
+    const reservedHeight = 420;
+    const rowHeight = 45;
+    const desiredRows = Math.max(5, Math.floor((viewportHeight - reservedHeight) / rowHeight));
+    const bestFit = [...this.pageSizeOptions].filter((option) => option <= desiredRows).pop() ?? 5;
+
+    this.pageSize = bestFit;
+    this.pageIndex = 0;
+    this.syncDesktopSkeletonRows();
+  }
+
+  private syncDesktopSkeletonRows(): void {
+    if (typeof window === 'undefined' || window.innerWidth < 768) {
+      const mobileCount = 4;
+      this.desktopSkeletonRows = Array.from({ length: mobileCount }, (_, index) => index);
+      return;
+    }
+
+    const viewportHeight = window.innerHeight;
+    const reservedHeight = 360;
+    const rowHeight = 45;
+    const availableRows = Math.ceil(Math.max(0, viewportHeight - reservedHeight) / rowHeight);
+    const count = Math.max(this.pageSize, availableRows);
+    this.desktopSkeletonRows = Array.from({ length: count }, (_, index) => index);
   }
 }

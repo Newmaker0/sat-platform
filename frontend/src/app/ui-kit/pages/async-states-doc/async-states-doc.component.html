@@ -27,8 +27,17 @@
     <p class="mt-1 text-sm text-slate-600">Exemplo de card com altura estável.</p>
 
     <div class="mt-4 min-h-[16rem]">
-      <ng-container [ngSwitch]="currentState">
-        <ul *ngSwitchCase="'loading'" class="space-y-2">
+      <app-async-state
+        [status]="currentState"
+        [loadingTemplate]="listLoadingTpl"
+        [successTemplate]="listSuccessTpl"
+        errorMessage="Não foi possível carregar a lista."
+        emptyMessage="Nenhum item encontrado."
+        [panelMinHeightClass]="'min-h-[16rem]'"
+      ></app-async-state>
+
+      <ng-template #listLoadingTpl>
+        <ul class="space-y-2">
           <li
             *ngFor="let row of [1, 2, 3, 4]"
             class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 animate-pulse"
@@ -38,22 +47,10 @@
             <div class="mt-2 h-3.5 w-24 rounded bg-slate-200"></div>
           </li>
         </ul>
+      </ng-template>
 
-        <div
-          *ngSwitchCase="'error'"
-          class="flex h-full min-h-[16rem] items-center justify-center rounded-lg border border-rose-200 bg-rose-50 p-6 text-center text-sm font-medium text-rose-700"
-        >
-          Não foi possível carregar a lista.
-        </div>
-
-        <div
-          *ngSwitchCase="'empty'"
-          class="flex h-full min-h-[16rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-sm font-medium text-slate-600"
-        >
-          Nenhum item encontrado.
-        </div>
-
-        <ul *ngSwitchDefault class="space-y-2">
+      <ng-template #listSuccessTpl>
+        <ul class="space-y-2">
           <li
             *ngFor="let item of items; trackBy: trackById"
             class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
@@ -63,7 +60,7 @@
             <p class="mt-1 text-sm font-medium text-slate-800">{{ item.quantidade }}</p>
           </li>
         </ul>
-      </ng-container>
+      </ng-template>
     </div>
   </article>
 </div>

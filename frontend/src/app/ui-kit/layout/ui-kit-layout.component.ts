@@ -23,7 +23,8 @@ export class UiKitLayoutComponent {
         { path: '/ui-kit', label: 'Visão geral' },
         { path: '/ui-kit/botoes', label: 'Botões' },
         { path: '/ui-kit/toggles', label: 'Toggles' },
-        { path: '/ui-kit/cards', label: 'Cards' }
+        { path: '/ui-kit/cards', label: 'Cards' },
+        { path: '/ui-kit/paginacao', label: 'Paginação' }
       ]
     },
     {

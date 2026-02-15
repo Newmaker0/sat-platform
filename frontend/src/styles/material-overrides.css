@@ -106,6 +106,13 @@
 
 .sat-reports-table .mat-column-acoes {
   width: 8%;
+  text-align: right;
+  padding-right: 1rem;
+}
+
+.sat-reports-table .mdc-data-table__header-cell.mat-column-acoes {
+  text-align: right;
+  padding-right: 1rem;
 }
 
 .sat-reports-table .mdc-data-table__header-cell {

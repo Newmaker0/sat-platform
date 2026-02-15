@@ -2,17 +2,11 @@
   <header class="sticky top-0 z-20 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
     <div class="flex items-center justify-between">
       <h1 class="text-sm font-semibold uppercase tracking-[0.15em] text-slate-700">SAT Platform</h1>
-      <button
-        type="button"
-        (click)="toggleSidebar()"
-        class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700"
-      >
-        Menu
-      </button>
+      <app-button variant="secondary" size="sm" (clicked)="toggleSidebar()"> Menu </app-button>
     </div>
   </header>
 
-  <div class="flex min-h-[calc(100vh-57px)] w-full md:min-h-screen">
+  <div class="flex h-[calc(100vh-57px)] w-full md:h-screen">
     <div
       class="fixed inset-0 z-30 bg-slate-950/30 md:hidden"
       *ngIf="isSidebarOpen"
@@ -43,117 +37,54 @@
       </nav>
 
       <div class="mt-auto border-t border-slate-200 pt-4" *ngIf="user$ | async as user">
-        <button
-          type="button"
-          [matMenuTriggerFor]="userMenu"
-          [matMenuTriggerRestoreFocus]="false"
+        <app-action-menu
+          [items]="userMenuItems"
+          [useDefaultTrigger]="false"
+          [triggerAriaLabel]="'Abrir menu do usuário'"
+          [xPosition]="'after'"
+          [yPosition]="'above'"
+          [showHeader]="true"
+          [headerInitial]="user.username.charAt(0).toUpperCase()"
+          [headerTitle]="user.username"
+          [headerSubtitle]="user.username + '@sat.local'"
           (menuOpened)="onUserMenuOpened()"
           (menuClosed)="onUserMenuClosed()"
-          #userMenuTrigger
-          [attr.aria-expanded]="isUserMenuOpen"
-          class="mt-4 flex w-full items-center gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-slate-900 transition hover:bg-slate-50"
+          (itemSelected)="onUserMenuAction($event)"
         >
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white"
+          <button
+            menuTrigger
+            type="button"
+            [attr.aria-expanded]="isUserMenuOpen"
+            class="mt-4 flex w-full items-center gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-slate-900 transition hover:bg-slate-50"
           >
-            {{ user.username.charAt(0).toUpperCase() }}
-          </div>
-
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-[0.92rem] font-semibold">{{ user.username }}</p>
-            <p class="truncate text-[0.74rem] font-medium text-slate-500">Usuário autenticado</p>
-          </div>
-
-          <span
-            class="text-slate-500 transition-transform duration-150"
-            [class.rotate-180]="isUserMenuOpen"
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 20 20" class="h-5 w-5 fill-current">
-              <path
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.12l3.71-3.89a.75.75 0 011.08 1.04l-4.25 4.46a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-              />
-            </svg>
-          </span>
-        </button>
-
-        <mat-menu
-          #userMenu="matMenu"
-          [overlapTrigger]="false"
-          xPosition="after"
-          yPosition="above"
-          class="sat-user-menu"
-          panelClass="sat-user-menu"
-        >
-          <div class="sat-menu-header flex items-center gap-3 px-3 py-3">
             <div
               class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white"
             >
               {{ user.username.charAt(0).toUpperCase() }}
             </div>
-            <div class="min-w-0">
-              <p class="truncate text-sm font-semibold">{{ user.username }}</p>
-              <p class="truncate text-xs text-slate-500">{{ user.username }}@sat.local</p>
+
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[0.92rem] font-semibold">{{ user.username }}</p>
+              <p class="truncate text-[0.74rem] font-medium text-slate-500">Usuário autenticado</p>
             </div>
-          </div>
 
-          <mat-divider></mat-divider>
-
-          <button mat-menu-item type="button" class="sat-menu-item" (click)="goToSettings()">
-            <span class="sat-menu-item-content">
-              <span class="sat-menu-item-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" class="h-4 w-4 fill-none stroke-current" stroke-width="2">
-                  <circle cx="10" cy="6" r="3"></circle>
-                  <path d="M4 16c1.5-2.5 3.7-3.8 6-3.8s4.5 1.3 6 3.8"></path>
-                </svg>
-              </span>
-              <span class="sat-menu-item-label">Perfil</span>
+            <span
+              class="text-slate-500 transition-transform duration-150"
+              [class.rotate-180]="isUserMenuOpen"
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 20 20" class="h-5 w-5 fill-current">
+                <path
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.12l3.71-3.89a.75.75 0 011.08 1.04l-4.25 4.46a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                />
+              </svg>
             </span>
           </button>
-          <button mat-menu-item type="button" class="sat-menu-item" (click)="goToActivities()">
-            <span class="sat-menu-item-content">
-              <span class="sat-menu-item-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" class="h-4 w-4 fill-none stroke-current" stroke-width="2">
-                  <rect x="2.5" y="5.5" width="15" height="9" rx="2"></rect>
-                  <path d="M2.5 9h15"></path>
-                </svg>
-              </span>
-              <span class="sat-menu-item-label">Atividades</span>
-            </span>
-          </button>
-          <button mat-menu-item type="button" class="sat-menu-item" (click)="goToSettings()">
-            <span class="sat-menu-item-content">
-              <span class="sat-menu-item-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" class="h-4 w-4 fill-none stroke-current" stroke-width="2">
-                  <path
-                    d="M10 3.5a4 4 0 00-4 4v2.3c0 .6-.2 1.1-.6 1.6l-1 1.3h11.2l-1-1.3c-.4-.5-.6-1-.6-1.6V7.5a4 4 0 00-4-4z"
-                  ></path>
-                  <path d="M8 14.5a2 2 0 004 0"></path>
-                </svg>
-              </span>
-              <span class="sat-menu-item-label">Notificações</span>
-            </span>
-          </button>
-
-          <mat-divider></mat-divider>
-
-          <button mat-menu-item type="button" class="sat-menu-item" (click)="logout()">
-            <span class="sat-menu-item-content">
-              <span class="sat-menu-item-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" class="h-4 w-4 fill-none stroke-current" stroke-width="2">
-                  <path d="M8 4H4.8A1.8 1.8 0 003 5.8v8.4A1.8 1.8 0 004.8 16H8"></path>
-                  <path d="M11 13l3-3-3-3"></path>
-                  <path d="M14 10H7"></path>
-                </svg>
-              </span>
-              <span class="sat-menu-item-label">Sair</span>
-            </span>
-          </button>
-        </mat-menu>
+        </app-action-menu>
       </div>
     </aside>
 
-    <main class="w-full p-4 sm:p-6 md:p-8">
+    <main class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto p-4 sm:p-6 md:p-8">
       <router-outlet></router-outlet>
     </main>
   </div>

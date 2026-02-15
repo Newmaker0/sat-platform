@@ -1,0 +1,40 @@
+<ng-container [ngSwitch]="displayedStatus">
+  <ng-container *ngSwitchCase="'loading'">
+    <ng-container *ngTemplateOutlet="loadingTemplate || null"></ng-container>
+  </ng-container>
+
+  <ng-container *ngSwitchCase="'idle'"></ng-container>
+
+  <ng-container *ngSwitchCase="'error'">
+    <ng-container *ngIf="errorTemplate; else defaultError">
+      <ng-container *ngTemplateOutlet="errorTemplate"></ng-container>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngSwitchCase="'empty'">
+    <ng-container *ngIf="emptyTemplate; else defaultEmpty">
+      <ng-container *ngTemplateOutlet="emptyTemplate"></ng-container>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngSwitchDefault>
+    <ng-container *ngTemplateOutlet="successTemplate || null"></ng-container>
+  </ng-container>
+</ng-container>
+
+<ng-template #defaultError>
+  <app-state-panel
+    [tone]="'error'"
+    [minHeightClass]="panelMinHeightClass"
+    [message]="errorMessage"
+    [actionLabel]="showRetry ? retryLabel : null"
+    (actionClicked)="onRetry()"
+  ></app-state-panel>
+</ng-template>
+
+<ng-template #defaultEmpty>
+  <app-state-panel
+    [minHeightClass]="panelMinHeightClass"
+    [message]="emptyMessage"
+  ></app-state-panel>
+</ng-template>

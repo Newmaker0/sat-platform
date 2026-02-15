@@ -1,0 +1,10 @@
+<mat-paginator
+  [class.shrink-0]="shrink"
+  [length]="length"
+  [pageIndex]="pageIndex"
+  [pageSize]="pageSize"
+  [pageSizeOptions]="pageSizeOptions"
+  [showFirstLastButtons]="showFirstLastButtons"
+  [attr.aria-label]="ariaLabel"
+  (page)="onPage($event)"
+></mat-paginator>

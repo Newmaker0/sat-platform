@@ -74,8 +74,19 @@
         </header>
 
         <div class="hidden md:block">
-          <ng-container [ngSwitch]="state.status">
-            <div *ngSwitchCase="'loading'" class="min-h-[19rem] space-y-3 p-5">
+          <app-async-state
+            [status]="state.status"
+            [loadingTemplate]="overviewInventoryDesktopLoadingTpl"
+            [successTemplate]="overviewInventoryDesktopSuccessTpl"
+            errorMessage="Não foi possível carregar o inventário."
+            emptyMessage="Nenhuma peça cadastrada no inventário."
+            [panelMinHeightClass]="'min-h-[19rem]'"
+            [showRetry]="true"
+            (retryRequested)="retryLoad()"
+          ></app-async-state>
+
+          <ng-template #overviewInventoryDesktopLoadingTpl>
+            <div class="min-h-[19rem] space-y-3 p-5">
               <div *ngFor="let row of listSkeletons" class="animate-pulse">
                 <div class="flex items-center justify-between gap-4">
                   <div class="h-4 w-40 rounded bg-slate-200"></div>
@@ -85,29 +96,10 @@
                 </div>
               </div>
             </div>
+          </ng-template>
 
-            <div
-              *ngSwitchCase="'error'"
-              class="flex min-h-[19rem] flex-col items-center justify-center gap-3 p-6 text-center text-sm font-medium text-slate-600"
-            >
-              <p>Não foi possível carregar o inventário.</p>
-              <button
-                type="button"
-                class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                (click)="retryLoad()"
-              >
-                Tentar novamente
-              </button>
-            </div>
-
-            <div
-              *ngSwitchCase="'empty'"
-              class="flex min-h-[19rem] items-center justify-center p-6 text-center text-sm font-medium text-slate-600"
-            >
-              Nenhuma peça cadastrada no inventário.
-            </div>
-
-            <div *ngSwitchDefault class="overflow-x-auto">
+          <ng-template #overviewInventoryDesktopSuccessTpl>
+            <div class="overflow-x-auto">
               <table class="w-full text-left">
                 <thead class="border-b border-slate-200 bg-slate-50">
                   <tr>
@@ -151,23 +143,33 @@
                       {{ item.quantidadeAtual }} {{ item.unidade }}
                     </td>
                     <td class="px-5 py-3.5">
-                      <span
-                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
-                        [ngClass]="getStockBadgeClasses(item)"
-                      >
-                        {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
-                      </span>
+                      <app-status-pill
+                        size="sm"
+                        [label]="item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável'"
+                        [tone]="getStockTone(item)"
+                      ></app-status-pill>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </ng-container>
+          </ng-template>
         </div>
 
         <div class="p-2 md:hidden">
-          <ng-container [ngSwitch]="state.status">
-            <div *ngSwitchCase="'loading'" class="min-h-[19rem] space-y-2">
+          <app-async-state
+            [status]="state.status"
+            [loadingTemplate]="overviewInventoryMobileLoadingTpl"
+            [successTemplate]="overviewInventoryMobileSuccessTpl"
+            errorMessage="Não foi possível carregar o inventário."
+            emptyMessage="Nenhuma peça cadastrada no inventário."
+            [panelMinHeightClass]="'min-h-[19rem]'"
+            [showRetry]="true"
+            (retryRequested)="retryLoad()"
+          ></app-async-state>
+
+          <ng-template #overviewInventoryMobileLoadingTpl>
+            <div class="min-h-[19rem] space-y-2">
               <article
                 *ngFor="let row of listSkeletons"
                 class="rounded-lg border border-slate-200 px-3 py-3"
@@ -179,29 +181,10 @@
                 </div>
               </article>
             </div>
+          </ng-template>
 
-            <div
-              *ngSwitchCase="'error'"
-              class="flex min-h-[19rem] flex-col items-center justify-center gap-3 p-6 text-center text-sm font-medium text-slate-600"
-            >
-              <p>Não foi possível carregar o inventário.</p>
-              <button
-                type="button"
-                class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                (click)="retryLoad()"
-              >
-                Tentar novamente
-              </button>
-            </div>
-
-            <div
-              *ngSwitchCase="'empty'"
-              class="flex min-h-[19rem] items-center justify-center p-6 text-center text-sm font-medium text-slate-600"
-            >
-              Nenhuma peça cadastrada no inventário.
-            </div>
-
-            <div *ngSwitchDefault class="divide-y divide-slate-200">
+          <ng-template #overviewInventoryMobileSuccessTpl>
+            <div class="divide-y divide-slate-200">
               <article
                 *ngFor="let item of getStockItems(state); trackBy: trackByStockItemId"
                 class="px-2 py-3"
@@ -210,12 +193,11 @@
                   <h3 class="text-[0.95rem] font-semibold leading-6 text-slate-900">
                     {{ item.nome }}
                   </h3>
-                  <span
-                    class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
-                    [ngClass]="getStockBadgeClasses(item)"
-                  >
-                    {{ item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável' }}
-                  </span>
+                  <app-status-pill
+                    size="sm"
+                    [label]="item.quantidadeAtual <= item.limiteMinimo ? 'Crítico' : 'Estável'"
+                    [tone]="getStockTone(item)"
+                  ></app-status-pill>
                 </div>
                 <dl class="mt-2 grid gap-1.5 text-[0.9rem]">
                   <div class="flex items-center justify-between gap-4">
@@ -231,7 +213,7 @@
                 </dl>
               </article>
             </div>
-          </ng-container>
+          </ng-template>
         </div>
       </article>
 
@@ -357,18 +339,15 @@
                     {{ activity.astronauta }} • {{ activity.registradoEm }}
                   </p>
                   <div class="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span
-                      class="inline-flex rounded-full px-2 py-0.5 text-[0.68rem] font-semibold"
-                      [ngClass]="getApplicationStatusClasses(activity.statusAplicacao)"
-                    >
-                      {{ getApplicationStatusLabel(activity.statusAplicacao) }}
-                    </span>
-                    <span
+                    <app-status-pill
+                      [label]="getApplicationStatusLabel(activity.statusAplicacao)"
+                      [tone]="getApplicationStatusTone(activity.statusAplicacao)"
+                    ></app-status-pill>
+                    <app-status-pill
                       *ngIf="activity.statusAplicacao === 'NAO_APLICADO'"
-                      class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-[0.68rem] font-semibold text-rose-700"
-                    >
-                      {{ getReasonLabel(activity.motivoNaoAplicacao) }}
-                    </span>
+                      tone="danger"
+                      [label]="getReasonLabel(activity.motivoNaoAplicacao)"
+                    ></app-status-pill>
                   </div>
                 </li>
               </ng-container>

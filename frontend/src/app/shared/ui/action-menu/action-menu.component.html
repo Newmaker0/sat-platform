@@ -1,0 +1,139 @@
+<button
+  *ngIf="useDefaultTrigger; else projectedTrigger"
+  type="button"
+  class="sat-action-menu-trigger inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent bg-transparent text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+  [matMenuTriggerFor]="menu"
+  [matMenuTriggerRestoreFocus]="false"
+  [attr.aria-label]="triggerAriaLabel"
+  (menuOpened)="onOpened()"
+  (menuClosed)="onClosed()"
+>
+  <svg viewBox="0 0 20 20" class="h-4 w-4 fill-current" aria-hidden="true">
+    <circle cx="4.5" cy="10" r="1.4"></circle>
+    <circle cx="10" cy="10" r="1.4"></circle>
+    <circle cx="15.5" cy="10" r="1.4"></circle>
+  </svg>
+</button>
+
+<ng-template #projectedTrigger>
+  <div
+    class="sat-action-menu-custom-trigger"
+    [ngClass]="triggerClass"
+    [matMenuTriggerFor]="menu"
+    [matMenuTriggerRestoreFocus]="false"
+    [attr.aria-label]="triggerAriaLabel"
+    (menuOpened)="onOpened()"
+    (menuClosed)="onClosed()"
+  >
+    <ng-content select="[menuTrigger]"></ng-content>
+  </div>
+</ng-template>
+
+<mat-menu
+  #menu="matMenu"
+  [xPosition]="xPosition"
+  [yPosition]="yPosition"
+  [overlapTrigger]="false"
+  class="sat-user-menu"
+  panelClass="sat-user-menu"
+>
+  <div *ngIf="showHeader" class="sat-menu-header flex items-center gap-3 px-3 py-3">
+    <div
+      class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white"
+    >
+      {{ headerInitial }}
+    </div>
+    <div class="min-w-0">
+      <p class="truncate text-sm font-semibold">{{ headerTitle }}</p>
+      <p class="truncate text-xs text-slate-500">{{ headerSubtitle }}</p>
+    </div>
+  </div>
+
+  <mat-divider *ngIf="showHeader"></mat-divider>
+
+  <ng-container *ngFor="let item of items; trackBy: trackById">
+    <mat-divider *ngIf="item.dividerBefore"></mat-divider>
+    <button
+      mat-menu-item
+      type="button"
+      class="sat-menu-item"
+      [disableRipple]="true"
+      (click)="onSelect(item.id)"
+    >
+      <span class="sat-menu-item-content">
+        <span class="sat-menu-item-icon" aria-hidden="true">
+          <svg
+            *ngIf="item.icon === 'sparkles'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <path d="m10 3 1.6 3.4L15 8l-3.4 1.6L10 13l-1.6-3.4L5 8l3.4-1.6z"></path>
+            <path d="m4 13 .8 1.6L6.5 15l-1.7.8L4 17.5l-.8-1.7L1.5 15l1.7-.4z"></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'history'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <path d="M3.5 10A6.5 6.5 0 1 0 5.4 5.4"></path>
+            <path d="M3.5 3.5v3h3"></path>
+            <path d="M10 6.5V10l2.5 1.5"></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'copy'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <rect x="7" y="6.5" width="9" height="10" rx="1.7"></rect>
+            <path
+              d="M5 13.5H4a1.5 1.5 0 0 1-1.5-1.5V4A1.5 1.5 0 0 1 4 2.5h6A1.5 1.5 0 0 1 11.5 4v1"
+            ></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'user'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <circle cx="10" cy="6" r="3"></circle>
+            <path d="M4 16c1.5-2.5 3.7-3.8 6-3.8s4.5 1.3 6 3.8"></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'activities'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <rect x="2.5" y="5.5" width="15" height="9" rx="2"></rect>
+            <path d="M2.5 9h15"></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'notifications'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <path
+              d="M10 3.5a4 4 0 00-4 4v2.3c0 .6-.2 1.1-.6 1.6l-1 1.3h11.2l-1-1.3c-.4-.5-.6-1-.6-1.6V7.5a4 4 0 00-4-4z"
+            ></path>
+            <path d="M8 14.5a2 2 0 004 0"></path>
+          </svg>
+          <svg
+            *ngIf="item.icon === 'logout'"
+            viewBox="0 0 20 20"
+            class="h-4 w-4 fill-none stroke-current"
+            stroke-width="2"
+          >
+            <path d="M8 4H4.8A1.8 1.8 0 003 5.8v8.4A1.8 1.8 0 004.8 16H8"></path>
+            <path d="M11 13l3-3-3-3"></path>
+            <path d="M14 10H7"></path>
+          </svg>
+        </span>
+        <span class="sat-menu-item-label">{{ item.label }}</span>
+      </span>
+    </button>
+  </ng-container>
+</mat-menu>

@@ -16,18 +16,11 @@
             <p class="text-sm font-semibold text-slate-900">Permitir ajuste manual</p>
             <p class="text-sm text-slate-600">Habilita compensações administrativas.</p>
           </div>
-          <button
-            type="button"
-            [attr.aria-pressed]="enabled"
-            class="relative rounded-full border-0 p-0.5 transition"
-            [ngClass]="getTrackClasses(enabled)"
-            (click)="toggleEnabled()"
-          >
-            <span
-              class="absolute left-0.5 top-0.5 rounded-full bg-white shadow transition-transform"
-              [ngClass]="getThumbClasses(enabled)"
-            ></span>
-          </button>
+          <app-toggle-switch
+            [size]="selectedSize"
+            [checked]="enabled"
+            (checkedChange)="toggleEnabled()"
+          ></app-toggle-switch>
         </div>
 
         <div class="flex items-center justify-between">
@@ -35,19 +28,12 @@
             <p class="text-sm font-semibold text-slate-900">Exigir observação em exceções</p>
             <p class="text-sm text-slate-600">Campo obrigatório em eventos não aplicados.</p>
           </div>
-          <button
-            type="button"
-            [attr.aria-pressed]="enabled"
+          <app-toggle-switch
+            [size]="selectedSize"
+            [checked]="enabled"
             [disabled]="disabled"
-            class="relative rounded-full border-0 p-0.5 transition"
-            [ngClass]="getTrackClasses(enabled)"
-            (click)="toggleEnabled()"
-          >
-            <span
-              class="absolute left-0.5 top-0.5 rounded-full bg-white shadow transition-transform"
-              [ngClass]="getThumbClasses(enabled)"
-            ></span>
-          </button>
+            (checkedChange)="toggleEnabled()"
+          ></app-toggle-switch>
         </div>
       </div>
     </article>

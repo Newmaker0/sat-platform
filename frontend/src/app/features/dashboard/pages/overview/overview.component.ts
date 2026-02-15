@@ -10,6 +10,7 @@ import {
   toAsyncState,
   withEmptyState
 } from '../../../../shared/async/async-state';
+import { UiPillTone } from '../../../../shared/ui/status-pill/status-pill.component';
 
 type OverviewState = AsyncStateWithEmpty<OverviewData>;
 
@@ -82,22 +83,16 @@ export class OverviewComponent {
     return state.status === 'success' ? state.data.openExceptions : [];
   }
 
-  getStockBadgeClasses(item: StockItem): string {
-    return item.quantidadeAtual <= item.limiteMinimo
-      ? 'bg-rose-100 text-rose-700'
-      : 'bg-emerald-100 text-emerald-700';
+  getStockTone(item: StockItem): UiPillTone {
+    return item.quantidadeAtual <= item.limiteMinimo ? 'danger' : 'success';
   }
 
   getApplicationStatusLabel(status: ApplicationStatus): string {
     return this.dashboardLabelsService.getApplicationStatusLabel(status);
   }
 
-  getApplicationStatusClasses(status: ApplicationStatus): string {
-    if (status === 'APLICADO') {
-      return 'bg-emerald-100 text-emerald-700';
-    }
-
-    return 'bg-rose-100 text-rose-700';
+  getApplicationStatusTone(status: ApplicationStatus): UiPillTone {
+    return status === 'APLICADO' ? 'success' : 'danger';
   }
 
   getReasonLabel(reason?: ConsumptionActivity['motivoNaoAplicacao']): string {

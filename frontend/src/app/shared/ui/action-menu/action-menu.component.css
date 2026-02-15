@@ -1,0 +1,14 @@
+:host {
+  justify-content: flex-end;
+}
+
+.sat-action-menu-custom-trigger {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+
+.sat-action-menu-trigger:focus-visible {
+  outline: 2px solid rgb(148 163 184);
+  outline-offset: 1px;
+}

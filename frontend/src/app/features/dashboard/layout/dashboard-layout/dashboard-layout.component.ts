@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
-import { MatMenuTrigger } from '@angular/material/menu';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
+import { ActionMenuItem } from '../../../../shared/ui/action-menu/action-menu.component';
 
 interface DashboardLink {
   readonly label: string;
@@ -14,13 +14,17 @@ interface DashboardLink {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardLayoutComponent {
-  @ViewChild(MatMenuTrigger) userMenuTrigger?: MatMenuTrigger;
-
   readonly user$ = this.authService.user$;
   readonly links: readonly DashboardLink[] = [
     { label: 'Estoque', path: 'estoque' },
     { label: 'Atividades', path: 'atividades' },
     { label: 'Configurações', path: 'configuracoes' }
+  ];
+  readonly userMenuItems: readonly ActionMenuItem[] = [
+    { id: 'PROFILE', label: 'Perfil', icon: 'user' },
+    { id: 'ACTIVITIES', label: 'Atividades', icon: 'activities' },
+    { id: 'NOTIFICATIONS', label: 'Notificações', icon: 'notifications' },
+    { id: 'LOGOUT', label: 'Sair', icon: 'logout', dividerBefore: true }
   ];
 
   isSidebarOpen = false;
@@ -33,7 +37,7 @@ export class DashboardLayoutComponent {
 
   closeSidebar(): void {
     this.isSidebarOpen = false;
-    this.closeUserMenu();
+    this.isUserMenuOpen = false;
   }
 
   toggleSidebar(): void {
@@ -52,25 +56,35 @@ export class DashboardLayoutComponent {
     this.isUserMenuOpen = false;
   }
 
-  closeUserMenu(): void {
-    this.userMenuTrigger?.closeMenu();
+  onUserMenuAction(actionId: string): void {
+    if (actionId === 'ACTIVITIES') {
+      this.goToActivities();
+      return;
+    }
+
+    if (actionId === 'LOGOUT') {
+      this.logout();
+      return;
+    }
+
+    this.goToSettings();
   }
 
   goToSettings(): void {
-    this.closeUserMenu();
+    this.isUserMenuOpen = false;
     this.closeSidebar();
     this.router.navigateByUrl('/dashboard/configuracoes');
   }
 
   goToActivities(): void {
-    this.closeUserMenu();
+    this.isUserMenuOpen = false;
     this.closeSidebar();
     this.router.navigateByUrl('/dashboard/atividades');
   }
 
   logout(): void {
     this.authService.logout();
-    this.closeUserMenu();
+    this.isUserMenuOpen = false;
     this.closeSidebar();
     this.router.navigateByUrl('/login');
   }
