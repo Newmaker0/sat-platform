@@ -31,14 +31,12 @@ export class AuthService {
       return of(false);
     }
 
-    const authToken = btoa(`${cleanUsername}:${cleanPassword}`);
-
-    return this.authApiService.validateAdminCredentials(authToken).pipe(
-      map(() => {
+    return this.authApiService.login(cleanUsername, cleanPassword).pipe(
+      map((response) => {
         this.authSessionStore.setUser({
-          username: cleanUsername,
-          role: 'ADMIN',
-          authToken
+          username: response.username,
+          role: response.role,
+          accessToken: response.accessToken
         });
         return true;
       }),

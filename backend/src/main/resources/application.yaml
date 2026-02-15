@@ -34,3 +34,9 @@ management:
       show-details: never
       probes:
         enabled: true
+
+sat:
+  security:
+    jwt:
+      secret: ${SAT_JWT_SECRET:change-this-jwt-secret-key-with-at-least-32-characters}
+      expiration-seconds: 7200

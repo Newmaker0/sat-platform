@@ -21,7 +21,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     var appUser =
         appUserRepository
             .findByUsernameIgnoreCase(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
     return User.withUsername(appUser.getUsername())
         .password(appUser.getPasswordHash())
@@ -30,4 +30,3 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         .build();
   }
 }
-

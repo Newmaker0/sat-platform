@@ -122,6 +122,6 @@ public class DataInitializer {
     return items.stream()
         .filter(item -> sku.equalsIgnoreCase(item.getSku()))
         .findFirst()
-        .orElseThrow(() -> new IllegalStateException("Item de estoque nao encontrado para SKU: " + sku));
+        .orElseThrow(() -> new IllegalStateException("Stock item not found for SKU: " + sku));
   }
 }

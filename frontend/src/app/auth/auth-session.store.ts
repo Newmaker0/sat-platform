@@ -6,7 +6,7 @@ export type UserRole = 'ADMIN' | 'TECHNICIAN';
 export interface AuthUser {
   readonly username: string;
   readonly role: UserRole;
-  readonly authToken: string;
+  readonly accessToken: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,8 +24,8 @@ export class AuthSessionStore {
     return this.user !== null;
   }
 
-  get authToken(): string | null {
-    return this.user?.authToken ?? null;
+  get accessToken(): string | null {
+    return this.user?.accessToken ?? null;
   }
 
   setUser(user: AuthUser): void {
@@ -46,10 +46,12 @@ export class AuthSessionStore {
 
     try {
       const parsed = JSON.parse(raw) as Partial<AuthUser>;
+      const token = parsed.accessToken ?? (parsed as { authToken?: string }).authToken;
+
       if (
         typeof parsed.username !== 'string' ||
         (parsed.role !== 'ADMIN' && parsed.role !== 'TECHNICIAN') ||
-        typeof parsed.authToken !== 'string'
+        typeof token !== 'string'
       ) {
         localStorage.removeItem(this.storageKey);
         return null;
@@ -58,7 +60,7 @@ export class AuthSessionStore {
       return {
         username: parsed.username,
         role: parsed.role,
-        authToken: parsed.authToken
+        accessToken: token
       };
     } catch {
       localStorage.removeItem(this.storageKey);

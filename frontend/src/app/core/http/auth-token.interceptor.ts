@@ -10,17 +10,17 @@ export class AuthTokenInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const requiresApiAuth = request.context.get(SAT_API_AUTH_REQUIRED);
-    const authToken = this.authSessionStore.authToken;
+    const accessToken = this.authSessionStore.accessToken;
     const hasAuthorization = request.headers.has('Authorization');
 
-    if (!requiresApiAuth || !authToken || hasAuthorization) {
+    if (!requiresApiAuth || !accessToken || hasAuthorization) {
       return next.handle(request);
     }
 
     return next.handle(
       request.clone({
         setHeaders: {
-          Authorization: `Basic ${authToken}`
+          Authorization: `Bearer ${accessToken}`
         }
       })
     );

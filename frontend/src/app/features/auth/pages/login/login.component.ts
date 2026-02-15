@@ -69,7 +69,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       )
       .subscribe((didLogin) => {
         if (!didLogin) {
-          this.errorMessage = 'Credenciais inválidas ou sem acesso administrativo.';
+          this.errorMessage = 'Credenciais inválidas';
           return;
         }
 
