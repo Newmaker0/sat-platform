@@ -1,0 +1,25 @@
+# VCS
+.git
+.gitignore
+
+# Gradle / Android outputs
+.gradle
+build
+**/build
+
+# Editor/OS
+.vscode
+.idea
+*.iml
+.DS_Store
+
+# Local machine files
+local.properties
+
+# Env / local config
+.env
+.env.*
+
+# APK/AAB outputs
+*.apk
+*.aab

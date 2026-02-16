@@ -1,0 +1,46 @@
+name: Build and Push Frontend Container (DOCR)
+
+on:
+  push:
+    branches: [digitalOcean-dev]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/dev-digital-ocean-frontend-publish.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Digital Ocean Frontend Development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build Docker image
+        env:
+          REGISTRY: registry.digitalocean.com/${{ secrets.DIGITAL_OCEAN_CONTAINER_REGISTRY }}
+          IMAGE_NAME: ${{ secrets.DIGITAL_OCEAN_FRONTEND_REPOSITORY }}
+        run: |
+          docker build --no-cache \
+            --build-arg NGINX_CONF=nginx.prod.conf \
+            -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+            -f frontend/Dockerfile \
+            frontend
+          docker tag $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+            $REGISTRY/$IMAGE_NAME:latest
+
+      - name: Push Docker image
+        env:
+          REGISTRY: registry.digitalocean.com/${{ secrets.DIGITAL_OCEAN_CONTAINER_REGISTRY }}
+          IMAGE_NAME: ${{ secrets.DIGITAL_OCEAN_FRONTEND_REPOSITORY }}
+        run: |
+          docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+          docker push $REGISTRY/$IMAGE_NAME:latest

@@ -1,25 +1,18 @@
 spring:
   application:
     name: sat-backend
+  profiles:
+    default: dev
   main:
     banner-mode: "off"
   mvc:
     servlet:
       load-on-startup: 1
-  datasource:
-    url: jdbc:h2:mem:satdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
     open-in-view: false
-  h2:
-    console:
-      enabled: true
 
 server:
   max-http-request-header-size: 16KB
@@ -40,3 +33,32 @@ sat:
     jwt:
       secret: ${SAT_JWT_SECRET:change-this-jwt-secret-key-with-at-least-32-characters}
       expiration-seconds: 7200
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:satdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:h2:mem:satdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}}
+    username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:sa}}
+    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:}}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}

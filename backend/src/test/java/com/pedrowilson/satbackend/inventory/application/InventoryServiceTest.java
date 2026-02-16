@@ -12,6 +12,8 @@ import com.pedrowilson.satbackend.inventory.application.command.SyncConsumptionB
 import com.pedrowilson.satbackend.inventory.application.command.SyncConsumptionBatchCommandHandler;
 import com.pedrowilson.satbackend.inventory.application.query.GetStockEventsQuery;
 import com.pedrowilson.satbackend.inventory.application.query.GetStockEventsQueryHandler;
+import com.pedrowilson.satbackend.inventory.application.query.GetTechnicianStockItemsQuery;
+import com.pedrowilson.satbackend.inventory.application.query.GetTechnicianStockItemsQueryHandler;
 import com.pedrowilson.satbackend.inventory.domain.StockItem;
 import com.pedrowilson.satbackend.inventory.repository.StockEventRepository;
 import com.pedrowilson.satbackend.inventory.repository.StockItemRepository;
@@ -30,6 +32,8 @@ class InventoryServiceTest {
   @Autowired private ApplyAdjustmentCommandHandler applyAdjustmentCommandHandler;
 
   @Autowired private GetStockEventsQueryHandler getStockEventsQueryHandler;
+
+  @Autowired private GetTechnicianStockItemsQueryHandler getTechnicianStockItemsQueryHandler;
 
   @Autowired private StockItemRepository stockItemRepository;
 
@@ -86,5 +90,21 @@ class InventoryServiceTest {
     assertThat(history.stream().filter(event -> "REJECTED".equals(event.status())).count()).isEqualTo(1);
     assertThat(history.stream().filter(event -> "ADJUSTMENT".equals(event.type())).count()).isEqualTo(1);
     assertThat(history.stream().anyMatch(event -> event.id().equals(adjustmentResponse.id()))).isTrue();
+  }
+
+  @Test
+  void shouldReturnTechnicianStockItemsSortedByName() {
+    stockItemRepository.save(new StockItem("SKU-3", "Zeta Item", 2, 1));
+    stockItemRepository.save(new StockItem("SKU-1", "Alpha Item", 7, 3));
+    stockItemRepository.save(new StockItem("SKU-2", "Beta Item", 4, 2));
+
+    var response = getTechnicianStockItemsQueryHandler.handle(new GetTechnicianStockItemsQuery());
+
+    assertThat(response).hasSize(3);
+    assertThat(response.get(0).name()).isEqualTo("Alpha Item");
+    assertThat(response.get(0).quantityAvailable()).isEqualTo(7);
+    assertThat(response.get(0).minimumThreshold()).isEqualTo(3);
+    assertThat(response.get(1).name()).isEqualTo("Beta Item");
+    assertThat(response.get(2).name()).isEqualTo("Zeta Item");
   }
 }

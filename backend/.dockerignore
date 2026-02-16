@@ -1,0 +1,22 @@
+# VCS
+.git
+.gitignore
+
+# Maven outputs
+target
+
+# Editor/OS
+.vscode
+.idea
+*.iml
+.DS_Store
+
+# Logs
+*.log
+
+# Env / local config
+.env
+.env.*
+
+# Docker
+Dockerfile*

@@ -1,0 +1,45 @@
+name: Build and Push Backend Container (DOCR)
+
+on:
+  push:
+    branches: [digitalOcean-dev]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/dev-digital-ocean-backend-publish.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Digital Ocean Backend Development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build Docker image
+        env:
+          REGISTRY: registry.digitalocean.com/${{ secrets.DIGITAL_OCEAN_CONTAINER_REGISTRY }}
+          IMAGE_NAME: ${{ secrets.DIGITAL_OCEAN_BACKEND_REPOSITORY }}
+        run: |
+          docker build --no-cache \
+            -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+            -f backend/Dockerfile \
+            backend
+          docker tag $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+            $REGISTRY/$IMAGE_NAME:latest
+
+      - name: Push Docker image
+        env:
+          REGISTRY: registry.digitalocean.com/${{ secrets.DIGITAL_OCEAN_CONTAINER_REGISTRY }}
+          IMAGE_NAME: ${{ secrets.DIGITAL_OCEAN_BACKEND_REPOSITORY }}
+        run: |
+          docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+          docker push $REGISTRY/$IMAGE_NAME:latest
