@@ -2,7 +2,7 @@ name: Build Android APK and Upload to DO Spaces
 
 on:
   push:
-    branches: [digitalOcean-dev]
+    branches: [dev]
     paths:
       - "mobile/**"
       - ".github/workflows/dev-digital-ocean-mobile-apk-upload.yml"
@@ -10,7 +10,6 @@ on:
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
-    environment: Digital Ocean Mobile Development
 
     steps:
       - name: Checkout repository
