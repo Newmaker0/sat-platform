@@ -27,6 +27,11 @@ android {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080\"")
         }
+        create("ci") {
+            initWith(getByName("debug"))
+            buildConfigField("String", "API_BASE_URL", "\"https://sat-backend-ig4xp.ondigitalocean.app\"")
+            matchingFallbacks += listOf("debug")
+        }
         release {
             isMinifyEnabled = false
             buildConfigField("String", "API_BASE_URL", "\"https://sat-backend-ig4xp.ondigitalocean.app\"")

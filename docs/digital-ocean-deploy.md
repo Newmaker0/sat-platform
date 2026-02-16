@@ -46,8 +46,8 @@ Segredos necessarios:
 
 Arquivo: `.github/workflows/dev-digital-ocean-mobile-apk-upload.yml`
 
-Gera APK debug e publica como artifact no GitHub Actions com nome:
-- `sat-mobile-debug-apk-<sha>`
+Gera APK `ci` (apontando para backend da DigitalOcean) e publica como artifact no GitHub Actions com nome:
+- `sat-mobile-ci-apk-<sha>`
 
 Segredos necessarios:
 - Nenhum segredo adicional para upload do APK.

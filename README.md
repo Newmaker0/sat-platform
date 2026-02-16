@@ -191,13 +191,26 @@ Atendimento:
 
 ### Download do APK mobile
 
-O APK debug do app mobile e gerado pela workflow:
+O APK `ci` do app mobile (com backend da DigitalOcean) e gerado pela workflow:
 - `.github/workflows/dev-digital-ocean-mobile-apk-upload.yml`
 
 Para baixar:
 1. Ir em `GitHub > Actions`.
 2. Abrir a execucao da workflow de mobile.
-3. Baixar o artifact `sat-mobile-debug-apk-<sha>`.
+3. Baixar o artifact `sat-mobile-ci-apk-<sha>`.
+
+## Credenciais de acesso
+
+Usuarios iniciais semeados pelo backend (`DataInitializer`):
+
+- `Pedro` / `Pedro` (perfil `ADMIN`)
+- `Felipe` / `Felipe` (perfil `TECHNICIAN`)
+- `Gustavo` / `Gustavo` (perfil `TECHNICIAN`)
+
+Uso por aplicacao:
+
+- Frontend web (painel administrativo): usar `Pedro` / `Pedro`
+- Mobile (app tecnico): usar `Felipe` / `Felipe` ou `Gustavo` / `Gustavo`
 
 ## Git hooks
 

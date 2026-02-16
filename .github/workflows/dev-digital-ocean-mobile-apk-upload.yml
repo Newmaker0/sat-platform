@@ -24,20 +24,21 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x mobile/gradlew
 
-      - name: Build debug APK
+      - name: Build CI APK (backend DigitalOcean)
         working-directory: mobile
-        run: ./gradlew :app:assembleDebug
+        run: ./gradlew :app:assembleCi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sat-mobile-debug-apk-${{ github.sha }}
-          path: mobile/app/build/outputs/apk/debug/app-debug.apk
+          name: sat-mobile-ci-apk-${{ github.sha }}
+          path: mobile/app/build/outputs/apk/ci/app-ci.apk
           if-no-files-found: error
           retention-days: 14
 
       - name: Publish download info in job summary
         run: |
           echo "## APK gerado" >> $GITHUB_STEP_SUMMARY
-          echo "Arquivo: \`sat-mobile-debug-apk-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Arquivo: \`sat-mobile-ci-apk-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Build type: \`ci\` (aponta para backend da DigitalOcean)" >> $GITHUB_STEP_SUMMARY
           echo "Baixe em: **Actions > este workflow > Artifacts**" >> $GITHUB_STEP_SUMMARY
