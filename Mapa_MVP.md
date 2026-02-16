@@ -114,11 +114,11 @@ Entregar um fluxo fim a fim funcional com:
 2. Aplicar refatoracao arquitetural
 3. Adicionar teste unitario e documentar "antes/depois"
 
-## 6. Criterios de pronto (Definition of Done)
+## 6. Criterios de pronto (Definicao de Pronto)
 
 Um incremento so e considerado pronto se:
 
-- Build do frontend passa: `cd frontend && npm run build`
+- Compilacao do frontend passa: `cd frontend && npm run build`
 - Lint do frontend passa: `cd frontend && npm run lint`
 - Testes backend passam: `cd backend && ./mvnw test`
 - Mobile compila sem erro no Android Studio

@@ -69,6 +69,7 @@ export class ReportsComponent implements OnInit {
   activeFilter: ActivityFilter = 'TODOS';
   actionFeedback: string | null = null;
   desktopSkeletonRows: readonly number[] = [];
+  isDesktop = false;
   private autoPageSizeEnabled = true;
 
   constructor(
@@ -77,12 +78,15 @@ export class ReportsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.updateViewportMode();
     this.configureDesktopPageSize();
     this.syncDesktopSkeletonRows();
   }
 
   @HostListener('window:resize')
   onWindowResize(): void {
+    this.updateViewportMode();
+
     if (!this.autoPageSizeEnabled) {
       return;
     }
@@ -257,5 +261,14 @@ export class ReportsComponent implements OnInit {
     const availableRows = Math.ceil(Math.max(0, viewportHeight - reservedHeight) / rowHeight);
     const count = Math.max(this.pageSize, availableRows);
     this.desktopSkeletonRows = Array.from({ length: count }, (_, index) => index);
+  }
+
+  private updateViewportMode(): void {
+    if (typeof window === 'undefined') {
+      this.isDesktop = true;
+      return;
+    }
+
+    this.isDesktop = window.innerWidth >= 768;
   }
 }

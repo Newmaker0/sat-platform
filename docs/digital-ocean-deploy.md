@@ -1,4 +1,4 @@
-# DigitalOcean Deploy (GitHub Actions)
+# Deploy na DigitalOcean (Acoes do GitHub)
 
 Este repositório possui 3 workflows para o branch `digitalOcean-dev`:
 
@@ -14,12 +14,12 @@ Builda `backend/Dockerfile` e publica no DOCR com tags:
 - `${GITHUB_SHA}`
 - `latest`
 
-Secrets necessários:
+Segredos necessarios:
 - `DIGITAL_OCEAN_ACCESS_TOKEN`
 - `DIGITAL_OCEAN_CONTAINER_REGISTRY`
 - `DIGITAL_OCEAN_BACKEND_REPOSITORY`
 
-Variáveis de runtime recomendadas no App Platform (serviço backend):
+Variaveis de execucao recomendadas no App Platform (servico backend):
 - `SPRING_PROFILES_ACTIVE=prod`
 - `DB_URL=jdbc:postgresql://<host>:<port>/<database>`
 - `DB_USERNAME=<usuario>`
@@ -35,29 +35,26 @@ Builda `frontend/Dockerfile` e publica no DOCR com tags:
 - `${GITHUB_SHA}`
 - `latest`
 
-Este workflow usa `--build-arg NGINX_CONF=nginx.prod.conf`.
+Este fluxo usa `--build-arg NGINX_CONF=nginx.prod.conf`.
 
-Secrets necessários:
+Segredos necessarios:
 - `DIGITAL_OCEAN_ACCESS_TOKEN`
 - `DIGITAL_OCEAN_CONTAINER_REGISTRY`
 - `DIGITAL_OCEAN_FRONTEND_REPOSITORY`
 
-## 3) Mobile (APK para Spaces)
+## 3) Mobile (APK como artifact no GitHub)
 
 Arquivo: `.github/workflows/dev-digital-ocean-mobile-apk-upload.yml`
 
-Gera APK debug e envia para DigitalOcean Spaces em:
-- `mobile/<branch>/<sha>/sat-mobile-debug.apk`
+Gera APK debug e publica como artifact no GitHub Actions com nome:
+- `sat-mobile-debug-apk-<sha>`
 
-Secrets necessários:
-- `DIGITAL_OCEAN_SPACES_KEY`
-- `DIGITAL_OCEAN_SPACES_SECRET`
-- `DIGITAL_OCEAN_SPACES_BUCKET`
-- `DIGITAL_OCEAN_SPACES_REGION`
+Segredos necessarios:
+- Nenhum segredo adicional para upload do APK.
 
-Observação:
-- O workflow publica URL no `Job Summary`.
-- Para distribuição no teste técnico, esse link de Spaces é suficiente.
+Observacao:
+- O fluxo publica instrucoes no resumo do job.
+- O download do APK fica em `Actions > workflow run > Artifacts`.
 
 ## Execução local com Docker (frontend + backend)
 

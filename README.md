@@ -124,6 +124,6 @@ Exemplos válidos:
 
 ---
 
-## 🤖 AI Contributors
+## 🤖 Contribuidores de IA
 
-If you are using Codex/AI agents to work in this repository, follow `AGENTS.md` for project-specific workflow, commands, constraints, and done criteria.
+Se voce estiver usando agentes Codex/IA para trabalhar neste repositorio, siga `AGENTS.md` para o fluxo, comandos, restricoes e criterios de pronto especificos do projeto.

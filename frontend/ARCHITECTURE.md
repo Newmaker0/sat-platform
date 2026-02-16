@@ -1,4 +1,4 @@
-# Frontend Architecture (Angular 15)
+# Arquitetura do Frontend (Angular 15)
 
 Este documento define as convenções do frontend para manter o projeto escalável e previsível.
 

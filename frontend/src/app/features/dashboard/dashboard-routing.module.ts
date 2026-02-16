@@ -4,7 +4,6 @@ import { AuthGuard } from '../../auth/auth.guard';
 import { DashboardLayoutComponent } from './layout/dashboard-layout/dashboard-layout.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { ReportsComponent } from './pages/reports/reports.component';
-import { SettingsComponent } from './pages/settings/settings.component';
 
 const routes: Routes = [
   {
@@ -15,10 +14,10 @@ const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'estoque' },
       { path: 'estoque', component: OverviewComponent },
       { path: 'atividades', component: ReportsComponent },
-      { path: 'configuracoes', component: SettingsComponent },
       { path: 'overview', pathMatch: 'full', redirectTo: 'estoque' },
       { path: 'reports', pathMatch: 'full', redirectTo: 'atividades' },
-      { path: 'settings', pathMatch: 'full', redirectTo: 'configuracoes' }
+      { path: 'configuracoes', pathMatch: 'full', redirectTo: 'estoque' },
+      { path: 'settings', pathMatch: 'full', redirectTo: 'estoque' }
     ]
   }
 ];

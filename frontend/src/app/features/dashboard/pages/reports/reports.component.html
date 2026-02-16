@@ -1,4 +1,4 @@
-<section class="flex min-h-0 flex-1 flex-col">
+<section class="flex flex-col md:min-h-0 md:flex-1">
   <app-page-header
     title="Atividades da tripulação"
     subtitle="Consumos e ajustes com rastreabilidade de aplicação, motivos e ações corretivas."
@@ -26,11 +26,11 @@
   </article>
 
   <div
-    class="sat-reports-table mt-4 flex min-h-[30rem] flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+    class="sat-reports-table mt-4 rounded-xl border border-slate-200 bg-white shadow-sm md:flex md:min-h-[30rem] md:flex-1 md:flex-col md:overflow-hidden"
     *ngIf="state$ | async as state"
   >
     <app-async-state
-      [fill]="true"
+      [fill]="isDesktop"
       [status]="state.status"
       [loadingTemplate]="reportsLoadingTpl"
       [errorTemplate]="reportsErrorTpl"

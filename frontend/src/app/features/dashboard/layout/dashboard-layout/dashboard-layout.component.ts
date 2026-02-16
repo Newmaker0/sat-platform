@@ -17,14 +17,10 @@ export class DashboardLayoutComponent {
   readonly user$ = this.authService.user$;
   readonly links: readonly DashboardLink[] = [
     { label: 'Estoque', path: 'estoque' },
-    { label: 'Atividades', path: 'atividades' },
-    { label: 'Configurações', path: 'configuracoes' }
+    { label: 'Atividades', path: 'atividades' }
   ];
   readonly userMenuItems: readonly ActionMenuItem[] = [
-    { id: 'PROFILE', label: 'Perfil', icon: 'user' },
-    { id: 'ACTIVITIES', label: 'Atividades', icon: 'activities' },
-    { id: 'NOTIFICATIONS', label: 'Notificações', icon: 'notifications' },
-    { id: 'LOGOUT', label: 'Sair', icon: 'logout', dividerBefore: true }
+    { id: 'LOGOUT', label: 'Sair', icon: 'logout' }
   ];
 
   isSidebarOpen = false;
@@ -57,29 +53,9 @@ export class DashboardLayoutComponent {
   }
 
   onUserMenuAction(actionId: string): void {
-    if (actionId === 'ACTIVITIES') {
-      this.goToActivities();
-      return;
-    }
-
     if (actionId === 'LOGOUT') {
       this.logout();
-      return;
     }
-
-    this.goToSettings();
-  }
-
-  goToSettings(): void {
-    this.isUserMenuOpen = false;
-    this.closeSidebar();
-    this.router.navigateByUrl('/dashboard/configuracoes');
-  }
-
-  goToActivities(): void {
-    this.isUserMenuOpen = false;
-    this.closeSidebar();
-    this.router.navigateByUrl('/dashboard/atividades');
   }
 
   logout(): void {

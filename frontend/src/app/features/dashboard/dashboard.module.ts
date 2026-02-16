@@ -9,15 +9,13 @@ import { MetricCardComponent } from './components/metric-card/metric-card.compon
 import { DashboardLayoutComponent } from './layout/dashboard-layout/dashboard-layout.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { ReportsComponent } from './pages/reports/reports.component';
-import { SettingsComponent } from './pages/settings/settings.component';
 
 @NgModule({
   declarations: [
     DashboardLayoutComponent,
     MetricCardComponent,
     OverviewComponent,
-    ReportsComponent,
-    SettingsComponent
+    ReportsComponent
   ],
   imports: [CommonModule, MaterialModule, UiModule, DashboardRoutingModule],
   providers: [{ provide: MatPaginatorIntl, useFactory: getPtBrPaginatorIntl }]

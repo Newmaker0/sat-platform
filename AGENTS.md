@@ -1,29 +1,29 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository.
+Guia para agentes de codificacao com IA trabalhando neste repositorio.
 
-## Project Scope
+## Escopo do Projeto
 
-`sat-platform` is a monorepo for a technical challenge with three apps:
-- `backend/`: Spring Boot API (Java 17, Maven)
-- `frontend/`: Angular dashboard (Angular 15, Node 18)
-- `mobile/`: Android app (Kotlin, Jetpack Compose, Gradle)
+`sat-platform` e um monorepo de teste tecnico com tres aplicacoes:
+- `backend/`: API Spring Boot (Java 17, Maven)
+- `frontend/`: Dashboard Angular (Angular 15, Node 18)
+- `mobile/`: App Android (Kotlin, Jetpack Compose, Gradle)
 
-Current phase: foundation and incremental implementation. Keep changes scoped and pragmatic.
+Fase atual: fundacao e implementacao incremental. Mantenha as mudancas objetivas e pragmaticas.
 
-## Repository Map
+## Mapa do Repositorio
 
-- `backend/src/main`: API code
-- `backend/src/test`: backend tests
-- `frontend/src`: Angular app code
-- `mobile/app/src/main`: Android app code
-- `mobile/app/src/test`: local unit tests
-- `mobile/app/src/androidTest`: instrumented tests
-- `Teste técnico.md`: challenge requirements and constraints
+- `backend/src/main`: codigo da API
+- `backend/src/test`: testes do backend
+- `frontend/src`: codigo da aplicacao Angular
+- `mobile/app/src/main`: codigo da aplicacao Android
+- `mobile/app/src/test`: testes unitarios locais
+- `mobile/app/src/androidTest`: testes instrumentados
+- `Teste tecnico.md`: requisitos e restricoes do desafio
 
-## Run Commands
+## Comandos de Execucao
 
-Run commands from repository root unless noted.
+Execute os comandos a partir da raiz do repositorio, salvo indicacao contraria.
 
 ### Backend
 
@@ -47,7 +47,7 @@ cd mobile
 ./gradlew :app:assembleDebug
 ```
 
-## Test Commands
+## Comandos de Teste
 
 ### Backend
 
@@ -70,61 +70,61 @@ cd mobile
 ./gradlew test
 ```
 
-## Coding Standards
+## Padroes de Codigo
 
-- Prefer minimal, focused patches; avoid broad refactors unless requested.
-- Preserve existing style and naming in each module.
-- Keep public behavior explicit; avoid hidden side effects.
-- Do not introduce new dependencies unless needed for the task.
-- Add or update tests when behavior changes.
+- Prefira patches minimos e focados; evite refactors amplos sem solicitacao.
+- Preserve o estilo e a nomenclatura existentes em cada modulo.
+- Mantenha o comportamento publico explicito; evite efeitos colaterais ocultos.
+- Nao introduza novas dependencias sem necessidade para a tarefa.
+- Adicione ou atualize testes quando houver mudanca de comportamento.
 
-## Architecture Constraints
+## Restricoes de Arquitetura
 
-- Respect module boundaries (`backend`, `frontend`, `mobile` are independently runnable).
-- Mobile requirements in this challenge should remain aligned with:
+- Respeite os limites entre modulos (`backend`, `frontend`, `mobile` sao executaveis de forma independente).
+- Os requisitos de mobile neste desafio devem permanecer alinhados com:
   - Kotlin + Jetpack Compose
   - Room
   - Koin
   - WorkManager
-  - MVVM + Repository pattern
-- Backend should keep Spring idioms (controller/service/repository separation).
+  - MVVM + padrao Repository
+- O backend deve manter os idioms do Spring (separacao controller/service/repository).
 
-## Git and Commit Rules
+## Regras de Git e Commit
 
-- Conventional Commits are required.
-- Valid format:
+- Conventional Commits sao obrigatorios.
+- Formato valido:
   - `<type>[optional scope][!]: <description>`
-- Common examples:
+- Exemplos comuns:
   - `feat(backend): add pedidos endpoint`
   - `fix(frontend): correct route guard logic`
   - `chore(mobile): update gradle config`
-- Hooks are versioned in `.githooks/`.
-- Install once per clone:
+- Hooks sao versionados em `.githooks/`.
+- Instale uma vez por clone:
 
 ```bash
 ./scripts/install-git-hooks.sh
 ```
 
-- Preferred commit command format (for humans and agents):
+- Formato de commit recomendado (para pessoas e agentes):
 
 ```bash
-git commit -m $'feat(scope): short title\n\nWhy this change was needed and what was done.'
+git commit -m $'feat(scope): titulo curto\n\nPor que esta mudanca foi necessaria e o que foi feito.'
 ```
 
-- The first line must always follow Conventional Commits.
-- Use the commit body for context, rationale, and important implementation notes.
+- A primeira linha deve sempre seguir Conventional Commits.
+- Use o corpo do commit para contexto, motivacao e notas importantes de implementacao.
 
-## Safety and Non-Goals
+## Seguranca e Nao Objetivos
 
-- Never commit secrets, credentials, tokens, or private keys.
-- Do not change CI/release/security-sensitive configuration unless explicitly requested.
-- Do not rewrite history, reset unrelated files, or revert user changes without request.
-- Do not implement speculative features not tied to current requirements.
+- Nunca versione segredos, credenciais, tokens ou chaves privadas.
+- Nao altere configuracoes sensiveis de CI/release/seguranca sem solicitacao explicita.
+- Nao reescreva historico, nao resete arquivos nao relacionados e nao reverta mudancas do usuario sem pedido.
+- Nao implemente funcionalidades especulativas sem relacao com os requisitos atuais.
 
-## Definition of Done
+## Definicao de Pronto
 
-Before finalizing a task:
-1. Relevant code is implemented and scoped to the request.
-2. Relevant tests/checks are run (or explicitly reported if not run).
-3. Documentation is updated when commands/behavior change.
-4. Changes follow Conventional Commits and repository hooks.
+Antes de finalizar uma tarefa:
+1. O codigo relevante foi implementado e esta dentro do escopo solicitado.
+2. Os testes/checks relevantes foram executados (ou foi informado explicitamente quando nao foram).
+3. A documentacao foi atualizada quando comandos/comportamento mudaram.
+4. As mudancas seguem Conventional Commits e os hooks do repositorio.
