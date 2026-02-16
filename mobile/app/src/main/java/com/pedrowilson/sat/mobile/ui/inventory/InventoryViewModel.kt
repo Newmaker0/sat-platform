@@ -69,6 +69,11 @@ class InventoryViewModel(
         )
 
     init {
+        if (!authState.value && backendOfflineSimulationState.value) {
+            inventoryRepository.setBackendOfflineSimulationEnabled(false)
+            backendOfflineSimulationState.value = false
+        }
+
         if (authState.value) {
             refreshStockItems()
             startAutoRefresh()
@@ -98,6 +103,7 @@ class InventoryViewModel(
 
     fun logout() {
         inventoryRepository.logout()
+        backendOfflineSimulationState.value = false
         authState.value = false
         stopAutoRefresh()
         message.value = "Sessao encerrada"

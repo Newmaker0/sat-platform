@@ -51,6 +51,7 @@ class InventoryRepositoryImpl(
 
     override fun logout() {
         backendApiClient.clearSession()
+        backendApiClient.setBackendOfflineSimulationEnabled(false)
     }
 
     override fun observeStockItems(): Flow<List<StockItem>> =
