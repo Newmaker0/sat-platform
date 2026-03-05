@@ -5,7 +5,7 @@
   ></app-page-header>
 
   <ng-container *ngIf="state$ | async as state">
-    <section class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <ng-container *ngIf="state.status === 'loading'; else metricsReady">
         <article
           *ngFor="let metric of metricSkeletons"
